@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>生字同步練習系統 - 專業版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4338ca; --amber: #f59e0b; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; touch-action: none; overflow: hidden; height: 100dvh; }
+        
+        /* iPad/iOS 標楷體核心修正：優先調用系統內建 KaiTi TC */
+        .kai-text { 
+            font-family: "KaiTi TC", "STKaiti", "BiauKai", "標楷體", "DFKai-SB", "Apple LiSung", serif; 
+            font-weight: bold; 
+        }
+
+        .tian-grid-wrapper { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); transform-origin: center center; }
+        .tian-grid-container {
+            width: 85vw; max-width: 500px; aspect-ratio: 1 / 1; position: relative;
+            background-color: #fff; border-radius: 16px; overflow: hidden; border: 4px solid #f87171;
+        }
+
+        /* 田字格紅線設計 */
+        .tian-grid-bg::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; border-top: 2.5px dashed #fca5a5; z-index: 1; height: 0; }
+        .tian-grid-bg::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 2.5px dashed #fca5a5; z-index: 1; width: 0; }
+
+        .btn-push { transition: all 0.1s; box-shadow: 0 4px 0 #1e1b4b; }
+        .btn-push:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e1b4b; }
+        
+        /* 視覺核對疊加層 - 460px 極大化設計 */
+        #check-overlay {
+            pointer-events: none; opacity: 0; transition: opacity 0.3s; color: rgba(67, 56, 202, 0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 460px; line-height: 1; z-index: 5; position: absolute; inset: 0;
+        }
+        #check-overlay.show { opacity: 1; }
+
+        /* 畫布物理尺寸固定為 500x500，徹底解決 iPad 上傳位移問題 */
+        canvas { position: absolute; inset: 0; z-index: 10; touch-action: none; cursor: crosshair; width: 100%; height: 100%; }
+
+        /* 極小化直式工具列 - 寬度僅 32px，不遮擋書寫 */
+        #draggable-toolbar {
+            position: fixed; right: 10px; top: 25%; z-index: 100; cursor: move; touch-action: none; user-select: none;
+            width: 32px; padding: 8px 2px;
+        }
+
+        .zoom-controls { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 50; }
+        .pop-font { font-weight: 900; letter-spacing: -1px; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="h-full flex flex-col">
+    <!-- 入口頁面 -->
+    <div id="mode-selector" class="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-white p-6">
+        <h1 class="text-6xl md:text-8xl pop-font text-indigo-700 mb-16 text-center italic tracking-tighter">生字同步練習</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-3xl px-4">
+            <button onclick="authTeacher()" class="bg-indigo-600 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
+                <span class="text-6xl mb-4">👨‍🏫</span>教師主控
+            </button>
+            <button onclick="window.showNameInput()" class="bg-amber-500 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
+                <span class="text-6xl mb-4">👶</span>學生練習
+            </button>
+        </div>
+    </div>
+
+    <!-- 姓名輸入視窗 -->
+    <div id="name-modal" class="hidden absolute inset-0 z-[160] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl">
+        <div class="bg-white p-12 rounded-[60px] shadow-2xl w-full max-w-sm mx-6 text-center border-b-8 border-indigo-200">
+            <h2 class="text-3xl font-black mb-6 text-indigo-700 font-bold">進入練習教室</h2>
+            <input type="text" id="st-name-input" class="w-full text-center text-3xl p-5 border-4 border-indigo-50 rounded-3xl mb-10 outline-none focus:border-indigo-500 font-bold" placeholder="姓名或座號">
+            <button onclick="initApp('student')" class="w-full bg-indigo-600 text-white py-5 rounded-3xl font-black text-2xl btn-push shadow-md">確認進入</button>
+        </div>
+    </div>
+
+    <!-- 教師主控端 -->
+    <div id="teacher-view" class="hidden h-full flex flex-col bg-slate-50">
+        <header class="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm relative z-50">
+            <div class="flex items-center gap-6">
+                <h2 class="font-black text-indigo-700 text-2xl tracking-tighter italic">管理控制台</h2>
+                <button onclick="showQRCode()" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl font-black text-xs border border-indigo-100 hover:bg-indigo-100 transition-colors">連線二維碼</button>
+                <div class="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full border">
+                    <input type="checkbox" id="check-toggle" onchange="syncCheckPerm()" class="w-5 h-5 accent-indigo-600">
+                    <label class="text-[10px] font-black text-slate-500 uppercase">開放核對功能</label>
+                </div>
+            </div>
+            <div id="conn-count" class="bg-indigo-600 text-white px-6 py-2 rounded-full text-xs font-black shadow-lg">在線: 0 人</div>
+        </header>
+        <main class="flex-grow flex overflow-hidden">
+            <aside class="w-72 bg-white border-r flex flex-col shrink-0 shadow-inner">
+                <div class="p-5 border-b bg-slate-50">
+                    <textarea id="data-input" class="w-full h-32 border-2 border-slate-100 rounded-2xl p-4 text-xs outline-none focus:border-indigo-500 font-bold" placeholder="格式：生字：詞語"></textarea>
+                    <button onclick="parseData()" class="w-full mt-2 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs hover:bg-black transition-colors shadow-md">同步題庫內容</button>
+                </div>
+                <div id="quiz-list" class="flex-grow overflow-y-auto p-4 space-y-3"></div>
+            </aside>
+            <section class="flex-grow p-8 overflow-y-auto bg-slate-100">
+                <div class="flex justify-between items-center mb-6 px-4">
+                    <h3 class="text-2xl font-black text-slate-800 italic underline decoration-amber-400">學生實作即時牆</h3>
+                    <button onclick="clearAllSubs()" class="text-xs font-bold text-red-500 hover:underline">清空全體數據</button>
+                </div>
+                <div id="monitor-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 學生練習端 -->
+    <div id="student-view" class="hidden h-full flex flex-col bg-[#fffefc]">
+        <header class="bg-white border-b px-8 py-4 flex justify-between items-center shrink-0 shadow-md relative z-40">
+            <div class="flex flex-col">
+                <div id="st-word" class="text-3xl font-black text-indigo-700 leading-none mb-1 tracking-tight italic">載入中...</div>
+                <div id="st-id-display" class="text-[10px] font-black text-indigo-300 uppercase tracking-widest italic font-bold">ID: ----</div>
+            </div>
+            <div class="flex gap-3">
+                <button id="check-btn" onclick="toggleOverlay()" class="hidden bg-indigo-600 text-white px-6 py-2 rounded-2xl font-black text-sm btn-push shadow-md">✨ 核對範本</button>
+                <button onclick="clearCanvas()" class="bg-slate-100 text-slate-500 px-6 py-2 rounded-2xl font-black text-sm hover:bg-slate-200">🧹 清除</button>
+                <button onclick="studentQuit()" class="bg-red-50 text-red-500 px-6 py-2 rounded-2xl font-black text-sm border border-red-100 shadow-sm font-bold">🚪 退出教室</button>
+            </div>
+        </header>
+        <main class="flex-grow flex flex-col md:flex-row p-6 gap-8 overflow-hidden relative items-center justify-center">
+            <div class="flex-grow flex flex-col md:flex-row gap-8 h-full items-center justify-center">
+                <!-- 左側範本飽滿設計 -->
+                <div class="h-1/5 md:h-full md:w-1/4 flex items-center justify-center bg-white rounded-[40px] border-4 border-amber-200 shadow-xl shrink-0 aspect-square overflow-hidden relative">
+                    <div id="st-char" class="kai-text text-[100px] md:text-[230px] text-slate-800 leading-none">?</div>
+                </div>
+                <!-- 中央書寫畫布 -->
+                <div class="flex-grow h-full flex items-center justify-center overflow-hidden">
+                    <div id="zoom-wrapper" class="tian-grid-wrapper">
+                        <div class="tian-grid-container shadow-2xl">
+                            <div class="tian-grid-bg absolute inset-0"></div>
+                            <canvas id="main-canvas"></canvas>
+                            <div id="check-overlay" class="kai-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 工具列極小化 (寬度 32px) -->
+            <div id="draggable-toolbar" class="bg-white/95 backdrop-blur-md rounded-[18px] shadow-2xl flex flex-col items-center gap-4 border border-indigo-50">
+                <div class="w-6 h-1 bg-slate-200 rounded-full mt-1.5 opacity-50"></div>
+                <div class="flex flex-col gap-3.5">
+                    <button onclick="changeColor('#1e293b')" class="w-7 h-7 rounded-full bg-slate-800 border-2 border-white shadow-sm active:scale-110"></button>
+                    <button onclick="changeColor('#ef4444')" class="w-7 h-7 rounded-full bg-red-500 border-2 border-white shadow-sm active:scale-110"></button>
+                    <button onclick="changeColor('#3b82f6')" class="w-7 h-7 rounded-full bg-blue-500 border-2 border-white shadow-sm active:scale-110"></button>
+                </div>
+                <button onclick="undo()" class="bg-amber-100 text-amber-700 w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center active:scale-90 mb-1.5 shadow-inner">↩</button>
+            </div>
+
+            <!-- 縮放控制器 -->
+            <div class="zoom-controls">
+                <button onclick="adjustZoom(0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90">+</button>
+                <button onclick="adjustZoom(-0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90">-</button>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBBIi6sw-wUzp-Jxc3dXJhl5DZ3-6LMe-o",
+        authDomain: "my-handwriting-tool.firebaseapp.com",
+        projectId: "my-handwriting-tool",
+        storageBucket: "my-handwriting-tool.firebasestorage.app",
+        messagingSenderId: "649810632937",
+        appId: "1:649810632937:web:085f7e5c8f5290d6da9078"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const ID = "ice-handwriting-v2026-github-final-v2"; 
+    let user, quizData = [], curIdx = 0, stName = '', zoom = 1.0;
+
+    window.showNameInput = () => document.getElementById('name-modal').classList.remove('hidden');
+
+    onAuthStateChanged(auth, u => { user = u; if(!u) signInAnonymously(auth); });
+
+    window.authTeacher = async () => {
+        const input = prompt("請輸入管理者密碼：");
+        if(input === "ice888") initApp('teacher'); else if(input !== null) alert("密碼錯誤");
+    };
+
+    window.initApp = async (role) => {
+        if(role === 'student'){
+            let n = document.getElementById('st-name-input').value.trim();
+            if(!n) n = `練習者-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
+            stName = n;
+            document.getElementById('st-id-display').innerText = `ID: ${stName}`;
+            document.getElementById('name-modal').classList.add('hidden');
+            await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), { name: stName, image: '', ts: Date.now() });
+        }
+        document.getElementById('mode-selector').classList.add('hidden');
+        if(role === 'teacher') setupTeacher(); else setupStudent();
+    };
+
+    window.studentQuit = async () => {
+        if(!confirm("確定退出教室？這會刪除您的手寫記錄並重設網頁。")) return;
+        if(user) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid));
+        location.reload();
+    };
+
+    window.deleteOneStudent = async (uid) => {
+        if(!confirm("確定要刪除這位學生的練習嗎？對方設備將會被強制斷連。")) return;
+        await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', uid));
+    };
+
+    window.syncCheckPerm = async () => {
+        const allowed = document.getElementById('check-toggle').checked;
+        await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { allowCheck: allowed }, { merge: true });
+    };
+
+    function setupTeacher() {
+        document.getElementById('teacher-view').classList.remove('hidden');
+        document.getElementById('data-input').value = "簽：簽名\n遞：遞給\n傻：傻瓜";
+        parseData();
+        onSnapshot(collection(db, 'artifacts', ID, 'public', 'data', 'submissions'), (snap) => {
+            const grid = document.getElementById('monitor-grid');
+            grid.innerHTML = '';
+            document.getElementById('conn-count').innerText = `在線: ${snap.size} 人`;
+            snap.forEach(d => {
+                const data = d.data();
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-[32px] shadow-lg border-2 border-slate-100 p-1.5 relative overflow-hidden transition-all";
+                card.innerHTML = `
+                    <div class="bg-indigo-600 text-white text-[9px] px-3 py-1.5 rounded-2xl mb-1 flex justify-between font-black items-center font-bold">
+                        <span class="truncate pr-2">${data.name}</span>
+                        <button onclick="deleteOneStudent('${d.id}')" class="bg-red-500 w-4 h-4 rounded-full flex items-center justify-center hover:bg-red-700 text-white font-bold text-xs shadow-sm transition-colors">−</button>
+                    </div>
+                    <img src="${data.image || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" class="w-full aspect-square object-contain bg-white rounded-2xl">
+                `;
+                grid.appendChild(card);
+            });
+        });
+    }
+
+    window.clearAllSubs = async () => {
+        if(!confirm("確定要清空全班畫面嗎？所有人皆會斷連。")) return;
+        const snap = await getDocs(collection(db, 'artifacts', ID, 'public', 'data', 'submissions'));
+        snap.forEach(d => deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', d.id)));
+    };
+
+    window.parseData = () => {
+        quizData = document.getElementById('data-input').value.split('\n').map(l => {
+            const p = l.split(/[：:]/);
+            return { char: p[0]?.trim() || '?', word: p[1]?.trim() || '' };
+        }).filter(i => i.char !== '?');
+        renderList();
+        sync({ type: 'UPDATE', data: quizData, idx: 0 });
+    };
+
+    function renderList() {
+        document.getElementById('quiz-list').innerHTML = quizData.map((it, idx) => `
+            <button onclick="setQuiz(${idx})" class="w-full text-left p-4 rounded-2xl border-2 transition-all ${curIdx === idx ? 'border-indigo-600 bg-indigo-50 shadow-md scale-[1.02]' : 'border-slate-50 opacity-60'}">
+                <span class="kai-text text-2xl mr-3 font-black">${it.char}</span><span class="text-xs text-slate-400 font-bold italic font-black">${it.word}</span>
+            </button>
+        `).join('');
+    }
+
+    window.setQuiz = (idx) => { curIdx = idx; renderList(); sync({ idx, ts: Date.now() }); };
+    async function sync(p) { await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { ...p, ts: Date.now() }, { merge: true }); }
+
+    function setupStudent() {
+        document.getElementById('student-view').classList.remove('hidden');
+        initCanvas();
+        initDraggable();
+        
+        let initialReady = false;
+        onSnapshot(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), (s) => {
+            if(initialReady && !s.exists()) {
+                alert("連線已斷開（教師移除或手動退出）。");
+                location.reload();
+            }
+            initialReady = true;
+        });
+
+        onSnapshot(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), (s) => {
+            if(s.exists()){
+                const d = s.data();
+                if(d.data) quizData = d.data;
+                if(d.idx !== undefined) curIdx = d.idx;
+                const i = quizData[curIdx] || { char: '?', word: '' };
+                document.getElementById('st-char').innerText = i.char;
+                document.getElementById('st-word').innerText = i.word;
+                document.getElementById('check-overlay').innerText = i.char;
+                document.getElementById('check-btn').classList.toggle('hidden', !d.allowCheck);
+                document.getElementById('check-overlay').classList.remove('show');
+                clearCanvas();
+            }
+        });
+    }
+
+    const canvas = document.getElementById('main-canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false, history = [], color = '#1e293b';
+
+    function initCanvas() {
+        // 核心修正：固定物理尺寸為 500x500，徹底解決上傳 1/4 問題
+        const reset = () => {
+            canvas.width = 500; canvas.height = 500;
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 14;
+            ctx.strokeStyle = color;
+        };
+        reset();
+        window.addEventListener('resize', reset);
+
+        const getXY = (e) => {
+            const r = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            // 比例映射坐標計算公式：徹底解決所有設備坐標對齊
+            const x = (clientX - r.left) * (500 / r.width);
+            const y = (clientY - r.top) * (500 / r.height);
+            return { x, y };
+        };
+
+        const start = (e) => { drawing = true; const p = getXY(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.strokeStyle = color; };
+        const move = (e) => { if(!drawing) return; e.preventDefault(); const p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+        const end = () => { if(drawing) { drawing = false; history.push(canvas.toDataURL()); autoUp(); } };
+
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('touchmove', move, {passive:false}); canvas.addEventListener('touchend', end);
+    }
+
+    window.changeColor = (c) => color = c;
+    window.clearCanvas = () => { ctx.clearRect(0,0,500,500); history = []; autoUp(); };
+    window.undo = () => {
+        if(history.length === 0) return;
+        history.pop(); const last = history[history.length-1];
+        ctx.clearRect(0,0,500,500);
+        if(last){ const img = new Image(); img.onload = () => ctx.drawImage(img, 0,0,500,500); img.src = last; }
+        autoUp();
+    };
+    window.adjustZoom = (d) => { zoom = Math.max(0.5, Math.min(2, zoom + d)); document.getElementById('zoom-wrapper').style.transform = `scale(${zoom})`; };
+    window.toggleOverlay = () => document.getElementById('check-overlay').classList.toggle('show');
+
+    function initDraggable() {
+        const tb = document.getElementById('draggable-toolbar');
+        let active = false, ox = 0, oy = 0;
+        const start = (e) => {
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            active = true; ox = cx - tb.offsetLeft; oy = cy - tb.offsetTop;
+        };
+        const move = (e) => {
+            if(!active) return; e.preventDefault();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            tb.style.left = `${cx - ox}px`; tb.style.top = `${cy - oy}px`; tb.style.right = 'auto';
+        };
+        tb.addEventListener('touchstart', start); tb.addEventListener('touchmove', move); window.addEventListener('touchend', () => active = false);
+        tb.addEventListener('mousedown', start); window.addEventListener('mouseup', () => active = false);
+    }
+
+    async function autoUp() {
+        if(!user || !stName) return;
+        // 由於物理尺寸固定 500x500，圖片導出必為置中滿格
+        const image = canvas.toDataURL('image/png', 0.2);
+        await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), { name: stName, image, ts: Date.now() });
+    }
+
+    window.showQRCode = () => {
+        const box = document.createElement('div');
+        box.className = "fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-6";
+        box.onclick = () => box.remove();
+        box.innerHTML = `<div class="bg-white p-10 rounded-[40px] text-center shadow-2xl"><h3 class="font-black text-2xl mb-4 text-indigo-700 italic tracking-tighter">掃描二維碼連線</h3><div id="qrc" class="flex justify-center mb-6"></div><p class="text-[10px] text-slate-400 font-bold italic">點擊背景任何處關閉視窗</p></div>`;
+        document.body.appendChild(box);
+        new QRCode(document.getElementById('qrc'), { text: window.location.href, width: 220, height: 220 });
+    };
+</script>
+</body>
+</html>
