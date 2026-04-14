@@ -11,7 +11,6 @@
         :root { --primary: #4338ca; --amber: #f59e0b; }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; touch-action: none; overflow: hidden; height: 100dvh; }
         
-        /* iPad/iOS 標楷體核心修正 */
         .kai-text { 
             font-family: "KaiTi TC", "STKaiti", "BiauKai", "標楷體", "DFKai-SB", "Apple LiSung", serif; 
             font-weight: bold; 
@@ -29,18 +28,17 @@
         .btn-push { transition: all 0.1s; box-shadow: 0 4px 0 #1e1b4b; }
         .btn-push:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e1b4b; }
         
-        /* 視覺核對疊加層 - 460px 極大化設計 */
-        #check-overlay {
-            pointer-events: none; opacity: 0; transition: opacity 0.3s; color: rgba(67, 56, 202, 0.15);
+        /* 解答疊加層：層級為 5，位於畫布(10)下方 */
+        #answer-overlay {
+            pointer-events: none; opacity: 0; transition: opacity 0.4s; color: rgba(67, 56, 202, 0.15);
             display: flex; align-items: center; justify-content: center;
             font-size: 460px; line-height: 1; z-index: 5; position: absolute; inset: 0;
         }
-        #check-overlay.show { opacity: 1; }
+        #answer-overlay.show { opacity: 1; }
 
-        /* 畫布物理尺寸固定為 500x500 */
-        canvas { position: absolute; inset: 0; z-index: 10; touch-action: none; cursor: crosshair; width: 100%; height: 100%; }
+        /* 畫布層級為 10，確保筆跡在解答上方 */
+        canvas { position: absolute; inset: 0; z-index: 10; touch-action: none; cursor: crosshair; width: 100%; height: 100%; background: transparent; }
 
-        /* 放大版可移動工具列 - 寬度調整為 44px 以提升操作感 */
         #draggable-toolbar {
             position: fixed; right: 15px; top: 25%; z-index: 100; cursor: move; touch-action: none; user-select: none;
             width: 44px; padding: 10px 4px;
@@ -57,7 +55,7 @@
     <div id="mode-selector" class="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-white p-6">
         <h1 class="text-6xl md:text-8xl pop-font text-indigo-700 mb-16 text-center italic tracking-tighter">生字同步練習</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-3xl px-4">
-            <button onclick="initApp('teacher')" class="bg-indigo-600 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
+            <button onclick="authTeacher()" class="bg-indigo-600 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
                 <span class="text-6xl mb-4">👨‍🏫</span>教師主控
             </button>
             <button onclick="window.showNameInput()" class="bg-amber-500 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
@@ -66,7 +64,7 @@
         </div>
     </div>
 
-    <!-- 姓名輸入視窗 -->
+    <!-- 姓名輸入 -->
     <div id="name-modal" class="hidden absolute inset-0 z-[160] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl">
         <div class="bg-white p-12 rounded-[60px] shadow-2xl w-full max-w-sm mx-6 text-center border-b-8 border-indigo-200">
             <h2 class="text-3xl font-black mb-6 text-indigo-700 font-bold">進入練習教室</h2>
@@ -75,15 +73,18 @@
         </div>
     </div>
 
-    <!-- 教師主控端 -->
+    <!-- 教師端 -->
     <div id="teacher-view" class="hidden h-full flex flex-col bg-slate-50">
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm relative z-50">
             <div class="flex items-center gap-6">
                 <h2 class="font-black text-indigo-700 text-2xl tracking-tighter italic">管理控制台</h2>
-                <button onclick="showQRCode()" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl font-black text-xs border border-indigo-100">連線二維碼</button>
-                <div class="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full border">
-                    <input type="checkbox" id="check-toggle" onchange="syncCheckPerm()" class="w-5 h-5 accent-indigo-600">
-                    <label class="text-[10px] font-black text-slate-500 uppercase">開放核對功能</label>
+                <div class="flex gap-2">
+                    <button onclick="showQRCode()" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl font-black text-xs border border-indigo-100">連線碼</button>
+                    <button onclick="changeAdminPassword()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-black text-xs border border-slate-200 hover:bg-slate-200 transition-colors">🔑 修改密碼</button>
+                </div>
+                <div class="flex items-center gap-2 bg-indigo-100 px-4 py-2 rounded-full border border-indigo-200">
+                    <input type="checkbox" id="answer-toggle" onchange="syncAnswerReveal()" class="w-5 h-5 accent-indigo-600">
+                    <label class="text-[10px] font-black text-indigo-700 uppercase">📢 公布解答</label>
                 </div>
             </div>
             <div id="conn-count" class="bg-indigo-600 text-white px-6 py-2 rounded-full text-xs font-black shadow-lg">在線: 0 人</div>
@@ -98,7 +99,7 @@
             </aside>
             <section class="flex-grow p-8 overflow-y-auto bg-slate-100">
                 <div class="flex justify-between items-center mb-6 px-4">
-                    <h3 class="text-2xl font-black text-slate-800 italic underline decoration-amber-400">學生實作即時牆</h3>
+                    <h3 class="text-2xl font-black text-slate-800 italic underline decoration-amber-400 font-bold">學生實作即時牆</h3>
                     <button onclick="clearAllSubs()" class="text-xs font-bold text-red-500 hover:underline">清空全體數據</button>
                 </div>
                 <div id="monitor-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
@@ -106,7 +107,7 @@
         </main>
     </div>
 
-    <!-- 學生練習端 -->
+    <!-- 學生端 -->
     <div id="student-view" class="hidden h-full flex flex-col bg-[#fffefc]">
         <header class="bg-white border-b px-8 py-4 flex justify-between items-center shrink-0 shadow-md relative z-40">
             <div class="flex flex-col">
@@ -114,7 +115,13 @@
                 <div id="st-id-display" class="text-[10px] font-black text-indigo-300 uppercase tracking-widest italic font-bold">ID: ----</div>
             </div>
             <div class="flex gap-3">
-                <button id="check-btn" onclick="toggleOverlay()" class="hidden bg-indigo-600 text-white px-6 py-2 rounded-2xl font-black text-sm btn-push shadow-md">✨ 核對範本</button>
+                <div id="reveal-status" class="bg-indigo-50 text-indigo-400 px-4 py-2 rounded-2xl font-black text-xs border border-indigo-100 flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                    </span>
+                    等待老師公布解答...
+                </div>
                 <button onclick="studentQuit()" class="bg-red-50 text-red-500 px-6 py-2 rounded-2xl font-black text-sm border border-red-100 shadow-sm font-bold">🚪 退出教室</button>
             </div>
         </header>
@@ -124,19 +131,21 @@
                 <div class="h-1/5 md:h-full md:w-1/4 flex items-center justify-center bg-white rounded-[40px] border-4 border-amber-200 shadow-xl shrink-0 aspect-square overflow-hidden relative">
                     <div id="st-char" class="kai-text text-[100px] md:text-[230px] text-slate-800 leading-none">?</div>
                 </div>
-                <!-- 中央畫布 -->
+                <!-- 中央書寫區 -->
                 <div class="flex-grow h-full flex items-center justify-center overflow-hidden">
                     <div id="zoom-wrapper" class="tian-grid-wrapper">
                         <div class="tian-grid-container shadow-2xl">
                             <div class="tian-grid-bg absolute inset-0"></div>
+                            <!-- 解答層(z-5) -->
+                            <div id="answer-overlay" class="kai-text"></div>
+                            <!-- 筆跡層(z-10) -->
                             <canvas id="main-canvas"></canvas>
-                            <div id="check-overlay" class="kai-text"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 放大版功能列 (整合清除功能) -->
+            <!-- 工具列 (44px) -->
             <div id="draggable-toolbar" class="bg-white/95 backdrop-blur-md rounded-[22px] shadow-2xl flex flex-col items-center gap-4 border border-indigo-50">
                 <div class="w-6 h-1 bg-slate-200 rounded-full mt-1.5 opacity-50"></div>
                 <div class="flex flex-col gap-3">
@@ -151,7 +160,7 @@
                 <div class="mb-1.5"></div>
             </div>
 
-            <!-- 縮放控制器 -->
+            <!-- 縮放器 -->
             <div class="zoom-controls">
                 <button onclick="adjustZoom(0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90">+</button>
                 <button onclick="adjustZoom(-0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90">-</button>
@@ -177,12 +186,28 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const ID = "ice-handwriting-final-pro-v2026-fix"; 
+    const ID = "ice-handwriting-final-reveal-v1"; 
     let user, quizData = [], curIdx = 0, stName = '', zoom = 1.0;
 
     window.showNameInput = () => document.getElementById('name-modal').classList.remove('hidden');
 
     onAuthStateChanged(auth, u => { user = u; if(!u) signInAnonymously(auth); });
+
+    window.authTeacher = async () => {
+        const configRef = doc(db, 'artifacts', ID, 'public', 'data', 'config', 'admin');
+        const s = await getDoc(configRef);
+        const pw = s.exists() ? s.data().adminPassword : "ice888";
+        const input = prompt("請輸入管理者密碼：");
+        if(input === pw) initApp('teacher'); else if(input !== null) alert("密碼錯誤");
+    };
+
+    window.changeAdminPassword = async () => {
+        const newPw = prompt("請輸入新的管理密碼：");
+        if(newPw && newPw.trim()) {
+            await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'config', 'admin'), { adminPassword: newPw.trim() }, { merge: true });
+            alert("密碼修改成功！以後請使用新密碼登入。");
+        }
+    };
 
     window.initApp = async (role) => {
         if(role === 'student'){
@@ -198,19 +223,18 @@
     };
 
     window.studentQuit = async () => {
-        if(!confirm("確定退出教室？這會刪除您的紀錄並重設網頁。")) return;
+        if(!confirm("確定退出教室？")) return;
         if(user) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid));
         location.reload();
     };
 
     window.deleteOneStudent = async (uid) => {
-        if(!confirm("確定要刪除這位學生的練習嗎？對方設備將會被強制斷連。")) return;
-        await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', uid));
+        if(!confirm("確定要移除這位學生？")) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', uid));
     };
 
-    window.syncCheckPerm = async () => {
-        const allowed = document.getElementById('check-toggle').checked;
-        await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { allowCheck: allowed }, { merge: true });
+    window.syncAnswerReveal = async () => {
+        const revealed = document.getElementById('answer-toggle').checked;
+        await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { showAnswer: revealed }, { merge: true });
     };
 
     function setupTeacher() {
@@ -238,7 +262,7 @@
     }
 
     window.clearAllSubs = async () => {
-        if(!confirm("確定要清空全班畫面嗎？所有人皆會斷連。")) return;
+        if(!confirm("確定要清空全班畫面嗎？")) return;
         const snap = await getDocs(collection(db, 'artifacts', ID, 'public', 'data', 'submissions'));
         snap.forEach(d => deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', d.id)));
     };
@@ -270,10 +294,7 @@
         
         let initialReady = false;
         onSnapshot(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), (s) => {
-            if(initialReady && !s.exists()) {
-                alert("連線已斷開（教師移除或手動退出）。");
-                location.reload();
-            }
+            if(initialReady && !s.exists()) { alert("連線已斷開。"); location.reload(); }
             initialReady = true;
         });
 
@@ -285,10 +306,16 @@
                 const i = quizData[curIdx] || { char: '?', word: '' };
                 document.getElementById('st-char').innerText = i.char;
                 document.getElementById('st-word').innerText = i.word;
-                document.getElementById('check-overlay').innerText = i.char;
-                document.getElementById('check-btn').classList.toggle('hidden', !d.allowCheck);
-                document.getElementById('check-overlay').classList.remove('show');
-                clearCanvas();
+                document.getElementById('answer-overlay').innerText = i.char;
+                
+                // 處理解答公布邏輯
+                const revealed = !!d.showAnswer;
+                document.getElementById('answer-overlay').classList.toggle('show', revealed);
+                document.getElementById('reveal-status').innerHTML = revealed ? 
+                    `<span class='text-indigo-600 font-bold'>✨ 解答已公布，請對照！</span>` : 
+                    `<span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span></span>等待老師公布解答...`;
+                
+                if(d.ts) clearCanvas();
             }
         });
     }
@@ -310,9 +337,7 @@
             const r = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const x = (clientX - r.left) * (500 / r.width);
-            const y = (clientY - r.top) * (500 / r.height);
-            return { x, y };
+            return { x: (clientX - r.left) * (500 / r.width), y: (clientY - r.top) * (500 / r.height) };
         };
 
         const start = (e) => { drawing = true; const p = getXY(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.strokeStyle = color; };
@@ -333,7 +358,6 @@
         autoUp();
     };
     window.adjustZoom = (d) => { zoom = Math.max(0.5, Math.min(2, zoom + d)); document.getElementById('zoom-wrapper').style.transform = `scale(${zoom})`; };
-    window.toggleOverlay = () => document.getElementById('check-overlay').classList.toggle('show');
 
     function initDraggable() {
         const tb = document.getElementById('draggable-toolbar');
@@ -363,7 +387,7 @@
         const box = document.createElement('div');
         box.className = "fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-6";
         box.onclick = () => box.remove();
-        box.innerHTML = `<div class="bg-white p-10 rounded-[40px] text-center shadow-2xl"><h3 class="font-black text-2xl mb-4 text-indigo-700 italic tracking-tighter">掃描二維碼連線</h3><div id="qrc" class="flex justify-center mb-6"></div><p class="text-[10px] text-slate-400 font-bold italic">點擊背景任何處關閉視窗</p></div>`;
+        box.innerHTML = `<div class="bg-white p-10 rounded-[40px] text-center shadow-2xl"><h3 class="font-black text-2xl mb-4 text-indigo-700 italic tracking-tighter">掃描 QR 連線</h3><div id="qrc" class="flex justify-center mb-6"></div><p class="text-[10px] text-slate-400 font-bold italic">點擊背景任何處關閉視窗</p></div>`;
         document.body.appendChild(box);
         new QRCode(document.getElementById('qrc'), { text: window.location.href, width: 220, height: 220 });
     };
