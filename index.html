@@ -11,7 +11,7 @@
         :root { --primary: #4338ca; --amber: #f59e0b; }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; touch-action: none; overflow: hidden; height: 100dvh; }
         
-        /* iPad/iOS 標楷體核心修正：優先調用系統內建 KaiTi TC */
+        /* iPad/iOS 標楷體核心修正 */
         .kai-text { 
             font-family: "KaiTi TC", "STKaiti", "BiauKai", "標楷體", "DFKai-SB", "Apple LiSung", serif; 
             font-weight: bold; 
@@ -23,7 +23,6 @@
             background-color: #fff; border-radius: 16px; overflow: hidden; border: 4px solid #f87171;
         }
 
-        /* 田字格紅線設計 */
         .tian-grid-bg::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; border-top: 2.5px dashed #fca5a5; z-index: 1; height: 0; }
         .tian-grid-bg::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 2.5px dashed #fca5a5; z-index: 1; width: 0; }
 
@@ -38,13 +37,13 @@
         }
         #check-overlay.show { opacity: 1; }
 
-        /* 畫布物理尺寸固定為 500x500，徹底解決 iPad 上傳位移問題 */
+        /* 畫布物理尺寸固定為 500x500 */
         canvas { position: absolute; inset: 0; z-index: 10; touch-action: none; cursor: crosshair; width: 100%; height: 100%; }
 
-        /* 極小化直式工具列 - 寬度僅 32px，不遮擋書寫 */
+        /* 放大版可移動工具列 - 寬度調整為 44px 以提升操作感 */
         #draggable-toolbar {
-            position: fixed; right: 10px; top: 25%; z-index: 100; cursor: move; touch-action: none; user-select: none;
-            width: 32px; padding: 8px 2px;
+            position: fixed; right: 15px; top: 25%; z-index: 100; cursor: move; touch-action: none; user-select: none;
+            width: 44px; padding: 10px 4px;
         }
 
         .zoom-controls { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 50; }
@@ -58,7 +57,7 @@
     <div id="mode-selector" class="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-white p-6">
         <h1 class="text-6xl md:text-8xl pop-font text-indigo-700 mb-16 text-center italic tracking-tighter">生字同步練習</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-3xl px-4">
-            <button onclick="authTeacher()" class="bg-indigo-600 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
+            <button onclick="initApp('teacher')" class="bg-indigo-600 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
                 <span class="text-6xl mb-4">👨‍🏫</span>教師主控
             </button>
             <button onclick="window.showNameInput()" class="bg-amber-500 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
@@ -81,7 +80,7 @@
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm relative z-50">
             <div class="flex items-center gap-6">
                 <h2 class="font-black text-indigo-700 text-2xl tracking-tighter italic">管理控制台</h2>
-                <button onclick="showQRCode()" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl font-black text-xs border border-indigo-100 hover:bg-indigo-100 transition-colors">連線二維碼</button>
+                <button onclick="showQRCode()" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl font-black text-xs border border-indigo-100">連線二維碼</button>
                 <div class="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full border">
                     <input type="checkbox" id="check-toggle" onchange="syncCheckPerm()" class="w-5 h-5 accent-indigo-600">
                     <label class="text-[10px] font-black text-slate-500 uppercase">開放核對功能</label>
@@ -93,7 +92,7 @@
             <aside class="w-72 bg-white border-r flex flex-col shrink-0 shadow-inner">
                 <div class="p-5 border-b bg-slate-50">
                     <textarea id="data-input" class="w-full h-32 border-2 border-slate-100 rounded-2xl p-4 text-xs outline-none focus:border-indigo-500 font-bold" placeholder="格式：生字：詞語"></textarea>
-                    <button onclick="parseData()" class="w-full mt-2 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs hover:bg-black transition-colors shadow-md">同步題庫內容</button>
+                    <button onclick="parseData()" class="w-full mt-2 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs shadow-md">同步題庫內容</button>
                 </div>
                 <div id="quiz-list" class="flex-grow overflow-y-auto p-4 space-y-3"></div>
             </aside>
@@ -116,17 +115,16 @@
             </div>
             <div class="flex gap-3">
                 <button id="check-btn" onclick="toggleOverlay()" class="hidden bg-indigo-600 text-white px-6 py-2 rounded-2xl font-black text-sm btn-push shadow-md">✨ 核對範本</button>
-                <button onclick="clearCanvas()" class="bg-slate-100 text-slate-500 px-6 py-2 rounded-2xl font-black text-sm hover:bg-slate-200">🧹 清除</button>
                 <button onclick="studentQuit()" class="bg-red-50 text-red-500 px-6 py-2 rounded-2xl font-black text-sm border border-red-100 shadow-sm font-bold">🚪 退出教室</button>
             </div>
         </header>
         <main class="flex-grow flex flex-col md:flex-row p-6 gap-8 overflow-hidden relative items-center justify-center">
             <div class="flex-grow flex flex-col md:flex-row gap-8 h-full items-center justify-center">
-                <!-- 左側範本飽滿設計 -->
+                <!-- 左側範本 -->
                 <div class="h-1/5 md:h-full md:w-1/4 flex items-center justify-center bg-white rounded-[40px] border-4 border-amber-200 shadow-xl shrink-0 aspect-square overflow-hidden relative">
                     <div id="st-char" class="kai-text text-[100px] md:text-[230px] text-slate-800 leading-none">?</div>
                 </div>
-                <!-- 中央書寫畫布 -->
+                <!-- 中央畫布 -->
                 <div class="flex-grow h-full flex items-center justify-center overflow-hidden">
                     <div id="zoom-wrapper" class="tian-grid-wrapper">
                         <div class="tian-grid-container shadow-2xl">
@@ -138,15 +136,19 @@
                 </div>
             </div>
 
-            <!-- 工具列極小化 (寬度 32px) -->
-            <div id="draggable-toolbar" class="bg-white/95 backdrop-blur-md rounded-[18px] shadow-2xl flex flex-col items-center gap-4 border border-indigo-50">
+            <!-- 放大版功能列 (整合清除功能) -->
+            <div id="draggable-toolbar" class="bg-white/95 backdrop-blur-md rounded-[22px] shadow-2xl flex flex-col items-center gap-4 border border-indigo-50">
                 <div class="w-6 h-1 bg-slate-200 rounded-full mt-1.5 opacity-50"></div>
-                <div class="flex flex-col gap-3.5">
-                    <button onclick="changeColor('#1e293b')" class="w-7 h-7 rounded-full bg-slate-800 border-2 border-white shadow-sm active:scale-110"></button>
-                    <button onclick="changeColor('#ef4444')" class="w-7 h-7 rounded-full bg-red-500 border-2 border-white shadow-sm active:scale-110"></button>
-                    <button onclick="changeColor('#3b82f6')" class="w-7 h-7 rounded-full bg-blue-500 border-2 border-white shadow-sm active:scale-110"></button>
+                <div class="flex flex-col gap-3">
+                    <button onclick="changeColor('#1e293b')" class="w-9 h-9 rounded-xl bg-slate-800 border-2 border-white shadow-sm active:scale-110"></button>
+                    <button onclick="changeColor('#ef4444')" class="w-9 h-9 rounded-xl bg-red-500 border-2 border-white shadow-sm active:scale-110"></button>
+                    <button onclick="changeColor('#3b82f6')" class="w-9 h-9 rounded-xl bg-blue-500 border-2 border-white shadow-sm active:scale-110"></button>
                 </div>
-                <button onclick="undo()" class="bg-amber-100 text-amber-700 w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center active:scale-90 mb-1.5 shadow-inner">↩</button>
+                <div class="flex flex-col gap-3 border-t border-slate-100 pt-3">
+                    <button onclick="undo()" class="bg-amber-100 text-amber-700 w-9 h-9 rounded-xl font-black text-lg flex items-center justify-center active:scale-90 shadow-sm">↩</button>
+                    <button onclick="clearCanvas()" class="bg-slate-100 text-slate-600 w-9 h-9 rounded-xl font-black text-lg flex items-center justify-center active:scale-90 shadow-sm">🧹</button>
+                </div>
+                <div class="mb-1.5"></div>
             </div>
 
             <!-- 縮放控制器 -->
@@ -175,17 +177,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const ID = "ice-handwriting-v2026-github-final-v2"; 
+    const ID = "ice-handwriting-final-pro-v2026-fix"; 
     let user, quizData = [], curIdx = 0, stName = '', zoom = 1.0;
 
     window.showNameInput = () => document.getElementById('name-modal').classList.remove('hidden');
 
     onAuthStateChanged(auth, u => { user = u; if(!u) signInAnonymously(auth); });
-
-    window.authTeacher = async () => {
-        const input = prompt("請輸入管理者密碼：");
-        if(input === "ice888") initApp('teacher'); else if(input !== null) alert("密碼錯誤");
-    };
 
     window.initApp = async (role) => {
         if(role === 'student'){
@@ -201,7 +198,7 @@
     };
 
     window.studentQuit = async () => {
-        if(!confirm("確定退出教室？這會刪除您的手寫記錄並重設網頁。")) return;
+        if(!confirm("確定退出教室？這會刪除您的紀錄並重設網頁。")) return;
         if(user) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid));
         location.reload();
     };
@@ -301,7 +298,6 @@
     let drawing = false, history = [], color = '#1e293b';
 
     function initCanvas() {
-        // 核心修正：固定物理尺寸為 500x500，徹底解決上傳 1/4 問題
         const reset = () => {
             canvas.width = 500; canvas.height = 500;
             ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 14;
@@ -314,7 +310,6 @@
             const r = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            // 比例映射坐標計算公式：徹底解決所有設備坐標對齊
             const x = (clientX - r.left) * (500 / r.width);
             const y = (clientY - r.top) * (500 / r.height);
             return { x, y };
@@ -355,12 +350,11 @@
             tb.style.left = `${cx - ox}px`; tb.style.top = `${cy - oy}px`; tb.style.right = 'auto';
         };
         tb.addEventListener('touchstart', start); tb.addEventListener('touchmove', move); window.addEventListener('touchend', () => active = false);
-        tb.addEventListener('mousedown', start); window.addEventListener('mouseup', () => active = false);
+        tb.addEventListener('mousedown', start); window.addEventListener('mousemove', move); window.addEventListener('mouseup', () => active = false);
     }
 
     async function autoUp() {
         if(!user || !stName) return;
-        // 由於物理尺寸固定 500x500，圖片導出必為置中滿格
         const image = canvas.toDataURL('image/png', 0.2);
         await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), { name: stName, image, ts: Date.now() });
     }
