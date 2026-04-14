@@ -28,20 +28,21 @@
         .btn-push { transition: all 0.1s; box-shadow: 0 4px 0 #1e1b4b; }
         .btn-push:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e1b4b; }
         
-        /* 解答疊加層：層級為 5，位於畫布(10)下方 */
+        /* 解答疊加層：z-index 5 (位於畫布 10 的下方) */
         #answer-overlay {
-            pointer-events: none; opacity: 0; transition: opacity 0.4s; color: rgba(67, 56, 202, 0.15);
+            pointer-events: none; opacity: 0; transition: opacity 0.4s; color: rgba(67, 56, 202, 0.18);
             display: flex; align-items: center; justify-content: center;
             font-size: 460px; line-height: 1; z-index: 5; position: absolute; inset: 0;
         }
         #answer-overlay.show { opacity: 1; }
 
-        /* 畫布層級為 10，確保筆跡在解答上方 */
+        /* 畫布物理尺寸固定 500x500，確保筆跡在解答上方 */
         canvas { position: absolute; inset: 0; z-index: 10; touch-action: none; cursor: crosshair; width: 100%; height: 100%; background: transparent; }
 
+        /* 加大版移動工具列 */
         #draggable-toolbar {
             position: fixed; right: 15px; top: 25%; z-index: 100; cursor: move; touch-action: none; user-select: none;
-            width: 44px; padding: 10px 4px;
+            width: 44px; padding: 12px 4px;
         }
 
         .zoom-controls { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 50; }
@@ -73,14 +74,14 @@
         </div>
     </div>
 
-    <!-- 教師端 -->
+    <!-- 教師主控端 -->
     <div id="teacher-view" class="hidden h-full flex flex-col bg-slate-50">
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm relative z-50">
             <div class="flex items-center gap-6">
                 <h2 class="font-black text-indigo-700 text-2xl tracking-tighter italic">管理控制台</h2>
                 <div class="flex gap-2">
                     <button onclick="showQRCode()" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl font-black text-xs border border-indigo-100">連線碼</button>
-                    <button onclick="changeAdminPassword()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-black text-xs border border-slate-200 hover:bg-slate-200 transition-colors">🔑 修改密碼</button>
+                    <button onclick="changeAdminPassword()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-black text-xs border border-slate-200 hover:bg-slate-200">🔑 修改密碼</button>
                 </div>
                 <div class="flex items-center gap-2 bg-indigo-100 px-4 py-2 rounded-full border border-indigo-200">
                     <input type="checkbox" id="answer-toggle" onchange="syncAnswerReveal()" class="w-5 h-5 accent-indigo-600">
@@ -93,7 +94,7 @@
             <aside class="w-72 bg-white border-r flex flex-col shrink-0 shadow-inner">
                 <div class="p-5 border-b bg-slate-50">
                     <textarea id="data-input" class="w-full h-32 border-2 border-slate-100 rounded-2xl p-4 text-xs outline-none focus:border-indigo-500 font-bold" placeholder="格式：生字：詞語"></textarea>
-                    <button onclick="parseData()" class="w-full mt-2 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs shadow-md">同步題庫內容</button>
+                    <button onclick="parseData()" class="w-full mt-2 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs shadow-md">同步題庫</button>
                 </div>
                 <div id="quiz-list" class="flex-grow overflow-y-auto p-4 space-y-3"></div>
             </aside>
@@ -107,11 +108,11 @@
         </main>
     </div>
 
-    <!-- 學生端 -->
+    <!-- 學生練習端 -->
     <div id="student-view" class="hidden h-full flex flex-col bg-[#fffefc]">
         <header class="bg-white border-b px-8 py-4 flex justify-between items-center shrink-0 shadow-md relative z-40">
             <div class="flex flex-col">
-                <div id="st-word" class="text-3xl font-black text-indigo-700 leading-none mb-1 tracking-tight italic">載入中...</div>
+                <div id="st-word" class="text-3xl font-black text-indigo-700 leading-none mb-1 tracking-tight italic font-black">載入中...</div>
                 <div id="st-id-display" class="text-[10px] font-black text-indigo-300 uppercase tracking-widest italic font-bold">ID: ----</div>
             </div>
             <div class="flex gap-3">
@@ -122,48 +123,48 @@
                     </span>
                     等待老師公布解答...
                 </div>
-                <button onclick="studentQuit()" class="bg-red-50 text-red-500 px-6 py-2 rounded-2xl font-black text-sm border border-red-100 shadow-sm font-bold">🚪 退出教室</button>
+                <button onclick="studentQuit()" class="bg-red-50 text-red-500 px-6 py-2 rounded-2xl font-black text-sm border border-red-100 shadow-sm font-bold">🚪 退出</button>
             </div>
         </header>
         <main class="flex-grow flex flex-col md:flex-row p-6 gap-8 overflow-hidden relative items-center justify-center">
             <div class="flex-grow flex flex-col md:flex-row gap-8 h-full items-center justify-center">
                 <!-- 左側範本 -->
                 <div class="h-1/5 md:h-full md:w-1/4 flex items-center justify-center bg-white rounded-[40px] border-4 border-amber-200 shadow-xl shrink-0 aspect-square overflow-hidden relative">
-                    <div id="st-char" class="kai-text text-[100px] md:text-[230px] text-slate-800 leading-none">?</div>
+                    <div id="st-char" class="kai-text text-[100px] md:text-[230px] text-slate-800 leading-none font-black">?</div>
                 </div>
-                <!-- 中央書寫區 -->
+                <!-- 中央書寫畫布 -->
                 <div class="flex-grow h-full flex items-center justify-center overflow-hidden">
                     <div id="zoom-wrapper" class="tian-grid-wrapper">
                         <div class="tian-grid-container shadow-2xl">
                             <div class="tian-grid-bg absolute inset-0"></div>
-                            <!-- 解答層(z-5) -->
+                            <!-- 解答層 (z-5) -->
                             <div id="answer-overlay" class="kai-text"></div>
-                            <!-- 筆跡層(z-10) -->
+                            <!-- 筆跡層 (z-10) -->
                             <canvas id="main-canvas"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 工具列 (44px) -->
-            <div id="draggable-toolbar" class="bg-white/95 backdrop-blur-md rounded-[22px] shadow-2xl flex flex-col items-center gap-4 border border-indigo-50">
-                <div class="w-6 h-1 bg-slate-200 rounded-full mt-1.5 opacity-50"></div>
-                <div class="flex flex-col gap-3">
-                    <button onclick="changeColor('#1e293b')" class="w-9 h-9 rounded-xl bg-slate-800 border-2 border-white shadow-sm active:scale-110"></button>
-                    <button onclick="changeColor('#ef4444')" class="w-9 h-9 rounded-xl bg-red-500 border-2 border-white shadow-sm active:scale-110"></button>
-                    <button onclick="changeColor('#3b82f6')" class="w-9 h-9 rounded-xl bg-blue-500 border-2 border-white shadow-sm active:scale-110"></button>
+            <!-- 加大版工具列 (整合清除功能) -->
+            <div id="draggable-toolbar" class="bg-white/95 backdrop-blur-md rounded-[24px] shadow-2xl flex flex-col items-center gap-4 border border-indigo-50">
+                <div class="w-7 h-1 bg-slate-200 rounded-full mt-1.5 opacity-50"></div>
+                <div class="flex flex-col gap-3.5">
+                    <button onclick="changeColor('#1e293b')" class="w-10 h-10 rounded-xl bg-slate-800 border-2 border-white shadow-sm active:scale-110"></button>
+                    <button onclick="changeColor('#ef4444')" class="w-10 h-10 rounded-xl bg-red-500 border-2 border-white shadow-sm active:scale-110"></button>
+                    <button onclick="changeColor('#3b82f6')" class="w-10 h-10 rounded-xl bg-blue-500 border-2 border-white shadow-sm active:scale-110"></button>
                 </div>
-                <div class="flex flex-col gap-3 border-t border-slate-100 pt-3">
-                    <button onclick="undo()" class="bg-amber-100 text-amber-700 w-9 h-9 rounded-xl font-black text-lg flex items-center justify-center active:scale-90 shadow-sm">↩</button>
-                    <button onclick="clearCanvas()" class="bg-slate-100 text-slate-600 w-9 h-9 rounded-xl font-black text-lg flex items-center justify-center active:scale-90 shadow-sm">🧹</button>
+                <div class="flex flex-col gap-3.5 border-t border-slate-100 pt-3.5">
+                    <button onclick="undo()" class="bg-amber-100 text-amber-700 w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center active:scale-90 shadow-sm font-bold">↩</button>
+                    <button onclick="clearCanvas()" class="bg-slate-100 text-slate-600 w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center active:scale-90 shadow-sm">🧹</button>
                 </div>
-                <div class="mb-1.5"></div>
+                <div class="mb-2"></div>
             </div>
 
-            <!-- 縮放器 -->
+            <!-- 縮放控制器 -->
             <div class="zoom-controls">
-                <button onclick="adjustZoom(0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90">+</button>
-                <button onclick="adjustZoom(-0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90">-</button>
+                <button onclick="adjustZoom(0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90 font-bold">+</button>
+                <button onclick="adjustZoom(-0.1)" class="w-12 h-12 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-2xl font-black text-indigo-600 active:scale-90 font-bold">-</button>
             </div>
         </main>
     </div>
@@ -186,8 +187,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const ID = "ice-handwriting-final-reveal-v1"; 
-    let user, quizData = [], curIdx = 0, stName = '', zoom = 1.0;
+    const ID = "ice-handwriting-reveal-fix-v2"; 
+    let user, quizData = [], curIdx = -1, stName = '', zoom = 1.0;
 
     window.showNameInput = () => document.getElementById('name-modal').classList.remove('hidden');
 
@@ -205,7 +206,7 @@
         const newPw = prompt("請輸入新的管理密碼：");
         if(newPw && newPw.trim()) {
             await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'config', 'admin'), { adminPassword: newPw.trim() }, { merge: true });
-            alert("密碼修改成功！以後請使用新密碼登入。");
+            alert("密碼修改成功！");
         }
     };
 
@@ -229,7 +230,7 @@
     };
 
     window.deleteOneStudent = async (uid) => {
-        if(!confirm("確定要移除這位學生？")) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', uid));
+        if(!confirm("確定要移除這位學生？對方設備將會被斷連。")) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', uid));
     };
 
     window.syncAnswerReveal = async () => {
@@ -248,11 +249,11 @@
             snap.forEach(d => {
                 const data = d.data();
                 const card = document.createElement('div');
-                card.className = "bg-white rounded-[32px] shadow-lg border-2 border-slate-100 p-1.5 relative overflow-hidden transition-all";
+                card.className = "bg-white rounded-[32px] shadow-lg border p-1.5 relative overflow-hidden transition-all";
                 card.innerHTML = `
-                    <div class="bg-indigo-600 text-white text-[9px] px-3 py-1.5 rounded-2xl mb-1 flex justify-between font-black items-center font-bold">
+                    <div class="bg-indigo-600 text-white text-[9px] px-3 py-1.5 rounded-2xl mb-1 flex justify-between font-black items-center">
                         <span class="truncate pr-2">${data.name}</span>
-                        <button onclick="deleteOneStudent('${d.id}')" class="bg-red-500 w-4 h-4 rounded-full flex items-center justify-center hover:bg-red-700 text-white font-bold text-xs shadow-sm transition-colors">−</button>
+                        <button onclick="deleteOneStudent('${d.id}')" class="bg-red-500 w-4 h-4 rounded-full flex items-center justify-center font-bold text-xs shadow-sm">×</button>
                     </div>
                     <img src="${data.image || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" class="w-full aspect-square object-contain bg-white rounded-2xl">
                 `;
@@ -279,19 +280,20 @@
     function renderList() {
         document.getElementById('quiz-list').innerHTML = quizData.map((it, idx) => `
             <button onclick="setQuiz(${idx})" class="w-full text-left p-4 rounded-2xl border-2 transition-all ${curIdx === idx ? 'border-indigo-600 bg-indigo-50 shadow-md scale-[1.02]' : 'border-slate-50 opacity-60'}">
-                <span class="kai-text text-2xl mr-3 font-black">${it.char}</span><span class="text-xs text-slate-400 font-bold italic font-black">${it.word}</span>
+                <span class="kai-text text-2xl mr-3 font-black">${it.char}</span><span class="text-xs text-slate-400 font-bold italic">${it.word}</span>
             </button>
         `).join('');
     }
 
     window.setQuiz = (idx) => { curIdx = idx; renderList(); sync({ idx, ts: Date.now() }); };
-    async function sync(p) { await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { ...p, ts: Date.now() }, { merge: true }); }
+    async function sync(p) { await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { ...p }, { merge: true }); }
 
     function setupStudent() {
         document.getElementById('student-view').classList.remove('hidden');
         initCanvas();
         initDraggable();
         
+        let lastKnownIdx = -1;
         let initialReady = false;
         onSnapshot(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), (s) => {
             if(initialReady && !s.exists()) { alert("連線已斷開。"); location.reload(); }
@@ -302,20 +304,25 @@
             if(s.exists()){
                 const d = s.data();
                 if(d.data) quizData = d.data;
-                if(d.idx !== undefined) curIdx = d.idx;
+                const newIdx = d.idx !== undefined ? d.idx : 0;
+                
+                // 核心邏輯修正：只有當「生字索引」改變時才清空畫布
+                if(newIdx !== lastKnownIdx) {
+                    clearCanvas();
+                    lastKnownIdx = newIdx;
+                }
+
+                curIdx = newIdx;
                 const i = quizData[curIdx] || { char: '?', word: '' };
                 document.getElementById('st-char').innerText = i.char;
                 document.getElementById('st-word').innerText = i.word;
                 document.getElementById('answer-overlay').innerText = i.char;
                 
-                // 處理解答公布邏輯
                 const revealed = !!d.showAnswer;
                 document.getElementById('answer-overlay').classList.toggle('show', revealed);
                 document.getElementById('reveal-status').innerHTML = revealed ? 
                     `<span class='text-indigo-600 font-bold'>✨ 解答已公布，請對照！</span>` : 
                     `<span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span></span>等待老師公布解答...`;
-                
-                if(d.ts) clearCanvas();
             }
         });
     }
@@ -387,7 +394,7 @@
         const box = document.createElement('div');
         box.className = "fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-6";
         box.onclick = () => box.remove();
-        box.innerHTML = `<div class="bg-white p-10 rounded-[40px] text-center shadow-2xl"><h3 class="font-black text-2xl mb-4 text-indigo-700 italic tracking-tighter">掃描 QR 連線</h3><div id="qrc" class="flex justify-center mb-6"></div><p class="text-[10px] text-slate-400 font-bold italic">點擊背景任何處關閉視窗</p></div>`;
+        box.innerHTML = `<div class="bg-white p-10 rounded-[40px] text-center shadow-2xl"><h3 class="font-black text-2xl mb-4 text-indigo-700 italic tracking-tighter font-bold">掃描 QR 連線</h3><div id="qrc" class="flex justify-center mb-6"></div><p class="text-[10px] text-slate-400 font-bold italic">點擊背景任何處關閉視窗</p></div>`;
         document.body.appendChild(box);
         new QRCode(document.getElementById('qrc'), { text: window.location.href, width: 220, height: 220 });
     };
