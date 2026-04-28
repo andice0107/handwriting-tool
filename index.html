@@ -75,23 +75,22 @@
     <div id="mode-selector" class="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-white p-6">
         <div class="text-center mb-16">
             <h1 class="text-6xl md:text-8xl pop-font text-indigo-700 italic tracking-tighter font-black">漢字習寫系統</h1>
-            <p class="text-2xl md:text-3xl font-bold text-indigo-400 mt-2 tracking-widest italic">可師生雙向同步</p>
+            <p class="text-2xl md:text-3xl font-bold text-indigo-400 mt-2 tracking-widest italic font-bold font-bold font-bold font-bold font-bold font-bold">可師生雙向同步</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-3xl px-4">
             <button onclick="openAuthModal('teacher')" class="bg-indigo-600 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl">
-                <span class="text-6xl mb-4 font-bold">👨‍🏫</span>教師主控
+                <span class="text-6xl mb-4 font-bold font-bold font-bold">👨‍🏫</span>教師主控
             </button>
-            <button onclick="window.showNameInput()" class="bg-amber-500 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl font-bold">
-                <span class="text-6xl mb-4 font-bold">👶</span>學生練習
+            <button onclick="window.showNameInput()" class="bg-amber-500 text-white p-12 rounded-[50px] btn-push text-3xl font-black flex flex-col items-center shadow-xl font-bold font-bold">
+                <span class="text-6xl mb-4 font-bold font-bold font-bold font-bold">👶</span>學生練習
             </button>
         </div>
     </div>
 
-    <!-- 2. 密碼/驗證碼模態框 -->
+    <!-- 2. 密碼驗證模態框 -->
     <div id="auth-modal" class="hidden absolute inset-0 z-[180] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl p-6 font-bold">
         <div class="bg-white p-10 rounded-[60px] shadow-2xl w-full max-w-sm text-center border-b-8 border-indigo-200">
             <h2 id="auth-title" class="text-3xl font-black mb-6 text-indigo-700">驗證身分</h2>
-            <p id="auth-desc" class="text-sm text-slate-400 mb-6">請輸入對應密碼或序號</p>
             <input type="password" id="admin-pw-input" class="w-full text-center text-3xl p-5 border-4 border-indigo-50 rounded-3xl mb-8 outline-none focus:border-indigo-500 font-bold" placeholder="••••••">
             <div class="flex gap-4">
                 <button onclick="closeAuthModal()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-3xl font-bold">取消</button>
@@ -103,12 +102,12 @@
     <!-- 3. 學生姓名與 6 碼輸入 -->
     <div id="name-modal" class="hidden absolute inset-0 z-[160] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl p-6">
         <div class="bg-white p-10 rounded-[60px] shadow-2xl w-full max-w-sm text-center border-b-8 border-indigo-200">
-            <h2 class="text-3xl font-black mb-6 text-indigo-700 font-bold">進入練習教室</h2>
-            <div class="space-y-4 mb-8">
+            <h2 class="text-3xl font-black mb-6 text-indigo-700 font-bold font-bold font-bold">進入練習教室</h2>
+            <div class="space-y-4 mb-8 font-bold font-bold">
                 <input type="text" id="st-name-input" class="w-full text-center text-2xl p-4 border-4 border-indigo-50 rounded-3xl outline-none focus:border-indigo-500 font-bold" placeholder="姓名或座號">
                 <input type="text" id="st-code-input" maxlength="6" class="w-full text-center text-3xl p-4 border-4 border-amber-100 rounded-3xl outline-none focus:border-amber-500 font-bold tracking-widest" placeholder="6 碼序號">
             </div>
-            <button onclick="initApp('student')" class="w-full bg-indigo-600 text-white py-5 rounded-3xl font-black text-2xl btn-push shadow-md">驗證進入</button>
+            <button onclick="initApp('student')" class="w-full bg-indigo-600 text-white py-5 rounded-3xl font-black text-2xl btn-push shadow-md font-bold">驗證進入</button>
         </div>
     </div>
 
@@ -120,36 +119,35 @@
                 <div class="relative info-btn shrink-0">
                     <button class="bg-indigo-50 text-indigo-600 w-9 h-9 rounded-full flex items-center justify-center text-lg border border-indigo-100 shadow-inner font-bold">💡</button>
                     <div class="tooltip-box font-bold text-xs">
-                        <h4 class="font-black text-indigo-700 border-b pb-1 mb-1">出題語法</h4>
-                        <p class="leading-relaxed mb-2">簽：簽名、簽收<br>冒號前為生字解答。</p>
-                        <h4 class="font-black text-indigo-700 border-b pb-1 mb-1">系統機制</h4>
-                        <p>1. 踢除學生會使其強制重掃碼。<br>2. 學生必須輸入右側 6 碼登入。<br>3. 切換題目會自動全體遮蔽畫板。</p>
+                        <h4 class="font-black text-indigo-700 border-b pb-1 mb-1 font-bold">出題語法</h4>
+                        <p class="leading-relaxed mb-2">生字：語詞、語詞<br>冒號前為生字解答。</p>
+                        <h4 class="font-black text-indigo-700 border-b pb-1 mb-1 font-bold font-bold font-bold font-bold font-bold">系統機制</h4>
+                        <p>1. 踢除學生會使其強制重登入。<br>2. 限時功能開啟後，仍可手動暫停作答。<br>3. 切換題目會自動隱蔽全體畫板。</p>
                     </div>
                 </div>
-                <!-- 6碼序號顯示 -->
                 <div class="flex flex-col bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-2xl shrink-0">
                     <span class="text-[8px] text-amber-600 font-bold uppercase">學生登入序號</span>
-                    <span id="display-join-code" class="text-xl font-black text-amber-700 tracking-tighter leading-none">------</span>
+                    <span id="display-join-code" class="text-xl font-black text-amber-700 tracking-tighter leading-none font-bold font-bold font-bold">------</span>
                 </div>
                 <div class="flex flex-col gap-0.5">
                    <div id="teacher-preview-box" class="font-bold text-indigo-400 text-xs truncate italic">無題目</div>
                 </div>
                 <div class="flex items-center gap-2 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200">
-                    <input type="checkbox" id="answer-toggle" onchange="syncAnswerReveal()" class="w-4 h-4 accent-indigo-600 font-bold">
+                    <input type="checkbox" id="answer-toggle" onchange="syncAnswerReveal()" class="w-4 h-4 accent-indigo-600 font-bold font-bold">
                     <label class="text-[10px] font-black text-indigo-700 uppercase">公布解答</label>
                 </div>
-                <div id="teacher-timer-box" class="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 font-bold font-bold font-bold">
-                    <input type="checkbox" id="timer-toggle" onchange="syncTimerConfig()" class="w-4 h-4 accent-amber-600">
-                    <label class="text-[10px] font-black text-amber-700 uppercase font-bold">限時</label>
+                <div id="teacher-timer-box" class="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 font-bold font-bold font-bold font-bold font-bold">
+                    <input type="checkbox" id="timer-toggle" onchange="syncTimerConfig()" class="w-4 h-4 accent-amber-600 font-bold font-bold">
+                    <label class="text-[10px] font-black text-amber-700 uppercase font-bold font-bold">限時</label>
                     <input type="number" id="timer-duration" value="30" class="w-10 text-center text-xs font-bold bg-white border border-amber-200 rounded py-0.5">
                     <button id="start-timer-btn" onclick="startCountdownNow()" class="bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] font-bold">開始</button>
                 </div>
                 <div id="pause-box" class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-                    <input type="checkbox" id="pause-toggle" onchange="syncPauseState()" class="w-4 h-4 accent-slate-600">
+                    <input type="checkbox" id="pause-toggle" onchange="syncPauseState()" class="w-4 h-4 accent-slate-600 font-bold">
                     <label class="text-[10px] font-black text-slate-700 uppercase font-bold">暫停作答</label>
                 </div>
-                <button onclick="showQRCode()" class="bg-indigo-600 text-white px-3 py-2 rounded-xl shadow font-black text-[10px] font-bold">📲 連線碼</button>
-                <button onclick="openAuthModal('change')" class="bg-slate-100 text-slate-600 px-2 py-2 rounded-xl font-black text-[10px] font-bold">🔑 密碼</button>
+                <button onclick="showQRCode()" class="bg-indigo-600 text-white px-3 py-2 rounded-xl shadow font-black text-[10px] font-bold font-bold font-bold font-bold font-bold font-bold font-bold">📲 連線碼</button>
+                <button onclick="openAuthModal('change')" class="bg-slate-100 text-slate-600 px-2 py-2 rounded-xl font-black text-[10px] font-bold font-bold">🔑 密碼</button>
             </div>
             <div id="conn-count" class="bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-black shadow-lg font-bold">在線: 0</div>
         </header>
@@ -158,19 +156,19 @@
                 <div id="sidebar-content" class="flex flex-col h-full font-bold">
                     <div class="p-6 border-b bg-slate-50 text-center">
                         <textarea id="data-input" class="w-full h-48 border-2 border-slate-100 rounded-2xl p-4 text-xs outline-none focus:border-indigo-500 font-bold" placeholder="生字：語詞、語詞"></textarea>
-                        <button onclick="parseData()" class="w-full mt-4 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs shadow-md font-bold">同步並收起側欄</button>
+                        <button onclick="parseData()" class="w-full mt-4 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs shadow-md font-bold font-bold font-bold font-bold font-bold">同步並收起側欄</button>
                     </div>
                     <div id="quiz-list-full" class="flex-grow overflow-y-auto p-4 space-y-3 bg-slate-50"></div>
                 </div>
-                <div id="sidebar-nav-vertical" class="hidden flex flex-col items-center py-6 gap-3 overflow-y-auto scrollbar-hide bg-slate-50 border-l border-slate-100 font-bold font-bold font-bold"></div>
+                <div id="sidebar-nav-vertical" class="hidden flex flex-col items-center py-6 gap-3 overflow-y-auto scrollbar-hide bg-slate-50 border-l border-slate-100 font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold"></div>
             </aside>
             <section class="flex-grow p-8 overflow-y-auto bg-slate-100 font-bold">
-                <div class="flex justify-between items-center mb-6 px-4 font-bold">
+                <div class="flex justify-between items-center mb-6 px-4 font-bold font-bold">
                     <div class="flex items-center gap-4">
                         <h3 class="text-2xl font-black text-slate-800 italic underline decoration-amber-400">實時監控牆</h3>
                         <div class="flex gap-2 bg-white p-1 rounded-full border shadow-sm font-bold">
-                            <button onclick="forceAllMasks(true)" class="text-[10px] px-3 py-1 rounded-full font-black text-slate-500 border border-transparent hover:border-slate-200">全部遮蔽</button>
-                            <button onclick="forceAllMasks(false)" class="text-[10px] px-3 py-1 rounded-full font-black text-indigo-600 border border-transparent hover:border-indigo-200">全部解除</button>
+                            <button onclick="forceAllMasks(true)" class="text-[10px] px-3 py-1 rounded-full font-black text-slate-500 border border-transparent hover:border-slate-200 font-bold">全部遮蔽</button>
+                            <button onclick="forceAllMasks(false)" class="text-[10px] px-3 py-1 rounded-full font-black text-indigo-600 border border-transparent hover:border-indigo-200 font-bold">全部解除</button>
                         </div>
                     </div>
                     <button onclick="clearAllSubs()" class="text-xs font-bold text-red-500 hover:underline">清空全體數據</button>
@@ -183,28 +181,28 @@
     <!-- 5. 學生端視圖 -->
     <div id="student-view" class="hidden h-full flex flex-col bg-[#fffefc]">
         <header class="bg-white border-b px-8 py-4 flex justify-between items-center shrink-0 shadow-md relative z-40">
-            <div class="flex flex-col font-bold">
+            <div class="flex flex-col">
                 <div id="st-word" class="text-3xl font-black text-indigo-700 leading-none mb-1 tracking-tight italic">漢字練習</div>
-                <div id="st-id-display" class="text-[10px] font-black text-indigo-300 uppercase tracking-widest italic font-bold">ID: ----</div>
+                <div id="st-id-display" class="text-[10px] font-black text-indigo-300 uppercase tracking-widest italic font-bold font-bold font-bold font-bold">ID: ----</div>
             </div>
-            <div class="flex gap-4 items-center font-bold">
-                <div id="timer-display" class="hidden bg-amber-500 text-white px-6 py-2 rounded-2xl font-black text-xl shadow-lg animate-pulse font-bold">
+            <div class="flex gap-4 items-center">
+                <div id="timer-display" class="hidden bg-amber-500 text-white px-6 py-2 rounded-2xl font-black text-xl shadow-lg animate-pulse font-bold font-bold font-bold font-bold">
                     ⏱ <span id="timer-seconds">30</span>s
                 </div>
-                <div id="reveal-status" class="bg-indigo-50 text-indigo-400 px-4 py-2 rounded-2xl font-black text-xs border border-indigo-100 flex items-center gap-2 font-bold font-bold font-bold">
-                    <span class="relative flex h-2 w-2 font-bold"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span></span>作答中...
+                <div id="reveal-status" class="bg-indigo-50 text-indigo-400 px-4 py-2 rounded-2xl font-black text-xs border border-indigo-100 flex items-center gap-2 font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold">
+                    <span class="relative flex h-2 w-2 font-bold font-bold font-bold"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span></span>作答中...
                 </div>
-                <button onclick="studentQuit()" class="bg-red-50 text-red-500 px-6 py-2 rounded-2xl font-black text-sm border border-red-100 shadow-sm font-bold font-bold font-bold">🚪 退出</button>
+                <button onclick="studentQuit()" class="bg-red-50 text-red-500 px-6 py-2 rounded-2xl font-black text-sm border border-red-100 shadow-sm font-bold font-bold font-bold font-bold font-bold">🚪 退出</button>
             </div>
         </header>
-        <main class="flex-grow flex items-center justify-start p-6 md:p-12 relative overflow-hidden">
-            <div id="st-char-container" class="shrink-0 font-bold font-bold">
+        <main class="flex-grow flex items-center justify-start p-6 md:p-12 relative overflow-hidden font-bold">
+            <div id="st-char-container" class="shrink-0 font-bold font-bold font-bold font-bold">
                 <div id="st-char" class="kai-text text-slate-800 leading-none font-black text-center">?</div>
             </div>
             <div class="flex-grow flex items-center justify-center font-bold">
                 <div id="zoom-wrapper" class="tian-grid-wrapper">
-                    <div class="tian-grid-container shadow-2xl font-bold font-bold">
-                        <div class="tian-grid-bg absolute inset-0 font-bold font-bold"></div>
+                    <div class="tian-grid-container shadow-2xl font-bold font-bold font-bold font-bold font-bold">
+                        <div class="tian-grid-bg absolute inset-0 font-bold font-bold font-bold font-bold font-bold font-bold"></div>
                         <div id="answer-overlay" class="kai-text font-bold"></div>
                         <img id="teacher-collab-layer" class="hidden">
                         <canvas id="main-canvas"></canvas>
@@ -212,41 +210,40 @@
                 </div>
             </div>
             <div id="draggable-toolbar" class="bg-white/95 backdrop-blur-md rounded-[26px] shadow-2xl flex flex-col items-center gap-4 border border-indigo-50">
-                <div class="w-7 h-1.5 bg-slate-200 rounded-full mt-2 opacity-50"></div>
+                <div class="w-7 h-1.5 bg-slate-200 rounded-full mt-2 opacity-50 font-bold"></div>
                 <div class="flex flex-col gap-3.5" id="st-tools">
                     <button onclick="setStudentMode('pen', '#3b82f6')" class="st-btn w-10 h-10 rounded-xl bg-blue-500 border-2 border-white shadow-sm tool-active" data-color="#3b82f6"></button>
                     <button onclick="setStudentMode('eraser')" id="st-eraser-btn" class="st-btn w-10 h-10 rounded-xl bg-white border-2 border-slate-100 flex items-center justify-center text-xl shadow-sm">🧽</button>
                 </div>
-                <div class="flex flex-col gap-3.5 border-t border-slate-100 pt-3.5 font-bold font-bold font-bold font-bold font-bold font-bold">
+                <div class="flex flex-col gap-3.5 border-t border-slate-100 pt-3.5 font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold">
                     <button id="st-undo-btn" onclick="undo()" class="st-btn bg-amber-100 text-amber-700 w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center active:scale-90 shadow-sm font-bold">↩</button>
-                    <button id="st-clear-btn" onclick="clearCanvas()" class="st-btn bg-slate-100 text-slate-600 w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center active:scale-90 shadow-sm font-bold font-bold font-bold font-bold">🧹</button>
+                    <button id="st-clear-btn" onclick="clearCanvas()" class="st-btn bg-slate-100 text-slate-600 w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center active:scale-90 shadow-sm font-bold font-bold font-bold font-bold font-bold font-bold">🧹</button>
                 </div>
                 <div class="mb-2 font-bold font-bold"></div>
             </div>
-            <!-- 恢復縮放控制鍵 -->
             <div class="zoom-controls">
                 <button onclick="adjustZoom(0.1)" class="w-14 h-14 bg-white rounded-full shadow-2xl border border-indigo-50 flex items-center justify-center text-3xl font-black text-indigo-600 active:scale-90 font-bold">+</button>
-                <button onclick="adjustZoom(-0.1)" class="w-14 h-14 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-3xl font-black text-indigo-600 active:scale-90 font-bold">-</button>
+                <button onclick="adjustZoom(-0.1)" class="w-14 h-14 bg-white rounded-full shadow-xl border border-indigo-50 flex items-center justify-center text-3xl font-black text-indigo-600 active:scale-90 font-bold font-bold font-bold font-bold">-</button>
             </div>
         </main>
     </div>
 
     <!-- 6. 教師協作視窗 -->
-    <div id="collab-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/85 p-4 font-bold font-bold font-bold">
+    <div id="collab-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/85 p-4 font-bold font-bold font-bold font-bold">
         <div class="bg-white w-full max-w-4xl rounded-[40px] shadow-2xl flex flex-col overflow-hidden max-h-[95vh]">
             <header class="p-6 bg-indigo-600 text-white flex justify-between items-center shrink-0">
-                <div class="flex items-center gap-6 font-bold font-bold">
+                <div class="flex items-center gap-6 font-bold font-bold font-bold font-bold">
                     <div>
                         <h3 class="text-2xl font-black italic font-bold" id="collab-st-title">協作教學中</h3>
-                        <p class="text-[10px] opacity-80 uppercase font-bold">上帝橡皮擦同步擦除</p>
+                        <p class="text-[10px] opacity-80 uppercase">上帝橡皮擦同步擦除</p>
                     </div>
-                    <div class="bg-indigo-700/50 px-4 py-2 rounded-2xl flex items-center gap-2 border border-white/20 font-bold font-bold font-bold font-bold font-bold">
+                    <div class="bg-indigo-700/50 px-4 py-2 rounded-2xl flex items-center gap-2 border border-white/20">
                         <input type="checkbox" id="collab-lock-student" onchange="syncStudentForceLock()" class="w-5 h-5 accent-indigo-400">
                         <label class="text-xs font-black">🔒 鎖定學生操作</label>
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="clearStudentRemote()" class="bg-amber-500 hover:bg-amber-600 px-6 py-2 rounded-2xl font-black text-sm shadow-lg transition-all font-bold font-bold font-bold font-bold">👤 幫他全清</button>
+                    <button onclick="clearStudentRemote()" class="bg-amber-500 hover:bg-amber-600 px-6 py-2 rounded-2xl font-black text-sm shadow-lg transition-all font-bold">👤 幫他全清</button>
                     <button onclick="closeCollab()" class="bg-white/20 px-6 py-2 rounded-2xl font-black text-sm border border-white/30 font-bold">關閉</button>
                 </div>
             </header>
@@ -256,14 +253,14 @@
                         <div class="absolute top-1/2 left-0 right-0 border-t-2 border-dashed border-red-400"></div>
                         <div class="absolute left-1/2 top-0 bottom-0 border-l-2 border-dashed border-red-400 font-bold"></div>
                     </div>
-                    <img id="collab-st-preview" class="absolute inset-0 z-10 w-full h-full object-contain pointer-events-none opacity-40 font-bold">
+                    <img id="collab-st-preview" class="absolute inset-0 z-10 w-full h-full object-contain pointer-events-none opacity-40 font-bold font-bold">
                     <canvas id="collab-canvas" class="relative z-20 w-full h-full font-bold"></canvas>
                 </div>
-                <div class="flex flex-col gap-4 font-bold font-bold font-bold font-bold font-bold">
-                    <button onclick="setCollabMode('pen', '#ef4444')" class="tc-tool w-14 h-14 rounded-2xl bg-red-500 border-4 border-white shadow-xl tool-active font-bold font-bold font-bold" data-tool="red"></button>
+                <div class="flex flex-col gap-4 font-bold font-bold">
+                    <button onclick="setCollabMode('pen', '#ef4444')" class="tc-tool w-14 h-14 rounded-2xl bg-red-500 border-4 border-white shadow-xl tool-active font-bold" data-tool="red"></button>
                     <button onclick="setCollabMode('pen', '#3b82f6')" class="tc-tool w-14 h-14 rounded-2xl bg-blue-500 border-4 border-white shadow-xl font-bold font-bold" data-tool="blue"></button>
-                    <button onclick="setCollabMode('pen', '#1e293b')" class="tc-tool w-14 h-14 rounded-2xl bg-slate-800 border-4 border-white shadow-xl font-bold font-bold font-bold font-bold font-bold" data-tool="black"></button>
-                    <button onclick="setCollabMode('eraser')" class="tc-tool w-14 h-14 rounded-2xl bg-white border-4 border-white shadow-xl flex items-center justify-center text-3xl font-bold font-bold font-bold font-bold" data-tool="eraser">🧽</button>
+                    <button onclick="setCollabMode('pen', '#1e293b')" class="tc-tool w-14 h-14 rounded-2xl bg-slate-800 border-4 border-white shadow-xl font-bold font-bold font-bold" data-tool="black"></button>
+                    <button onclick="setCollabMode('eraser')" class="tc-tool w-14 h-14 rounded-2xl bg-white border-4 border-white shadow-xl flex items-center justify-center text-3xl font-bold" data-tool="eraser">🧽</button>
                     <div class="border-t border-slate-200 pt-4 mt-2 flex flex-col gap-4">
                         <button onclick="undoCollab()" class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-700 shadow-lg text-2xl font-bold">↩</button>
                         <button onclick="clearCollabCanvas()" class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 shadow-lg text-2xl font-bold font-bold font-bold font-bold">🧹</button>
@@ -281,7 +278,7 @@
 
     const firebaseConfig = { apiKey: "AIzaSyBBIi6sw-wUzp-Jxc3dXJhl5DZ3-6LMe-o", authDomain: "my-handwriting-tool.firebaseapp.com", projectId: "my-handwriting-tool", storageBucket: "my-handwriting-tool.firebasestorage.app", messagingSenderId: "649810632937", appId: "1:649810632937:web:085f7e5c8f5290d6da9078" };
     const app = initializeApp(firebaseConfig), db = getFirestore(app), auth = getAuth(app);
-    const ID = "ice-hanzi-privacy-expert-final-v2"; 
+    const ID = "ice-hanzi-privacy-expert-final-v3"; 
     let user = null, quizData = [], curIdx = -1, stName = '', zoom = 1.0, collabTargetUid = null, isLocked = false, isSidebarCollapsed = true;
     let visibleUids = new Set(), globalMasked = true, currentJoinCode = "";
 
@@ -334,7 +331,7 @@
             const stateRef = doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current');
             const s = await getDoc(stateRef);
             const serverCode = s.exists() ? s.data().joinCode : "";
-            if(codeInput !== serverCode) { alert("登入序號錯誤，請向老師詢問"); return; }
+            if(codeInput !== serverCode) { alert("登入序號錯誤"); return; }
 
             stName = document.getElementById('st-name-input').value.trim() || `學生-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
             document.getElementById('st-id-display').innerText = `ID: ${stName}`;
@@ -354,6 +351,7 @@
         else visibleUids.add(uid);
         renderMonitorGrid(); 
     };
+
     window.forceAllMasks = (shouldMask) => {
         globalMasked = shouldMask; visibleUids.clear();
         if(!shouldMask) submissionsData.forEach(s => visibleUids.add(s.id));
@@ -365,7 +363,6 @@
         document.getElementById('teacher-view').classList.remove('hidden');
         document.getElementById('data-input').value = "簽：簽名、簽收、代簽";
         
-        // 生成 6 碼序號並更新至雲端
         currentJoinCode = Math.floor(100000 + Math.random() * 900000).toString();
         document.getElementById('display-join-code').innerText = currentJoinCode;
         await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { joinCode: currentJoinCode }, { merge: true });
@@ -380,7 +377,11 @@
             if(s.exists()){
                 const d = s.data(); const running = d.timerEnabled && d.timerEndTime && Date.now() < d.timerEndTime;
                 document.getElementById('timer-toggle').disabled = running; document.getElementById('timer-duration').disabled = running; document.getElementById('start-timer-btn').disabled = running;
-                document.getElementById('pause-box').style.opacity = d.timerEnabled ? '0.2' : '1'; document.getElementById('pause-toggle').disabled = d.timerEnabled;
+                
+                // 重大修正：暂停鍵不應受到 timerEnabled 的阻礙
+                document.getElementById('pause-box').style.opacity = '1'; 
+                document.getElementById('pause-toggle').disabled = false;
+                
                 document.querySelectorAll('.number-btn-v').forEach(btn => btn.classList.toggle('active', parseInt(btn.dataset.idx) === d.idx));
                 document.getElementById('answer-toggle').checked = !!d.showAnswer;
                 if(d.data && d.idx !== undefined) {
@@ -401,12 +402,12 @@
                 <div class="bg-indigo-600 text-white text-[8px] px-2.5 py-1.5 rounded-xl mb-1.5 flex justify-between items-center">
                     <span class="truncate pr-1">${data.name}</span>
                     <div class="flex gap-1">
-                         <button onclick="toggleMask('${data.id}')" class="bg-white/20 w-5 h-5 rounded flex items-center justify-center">${isVisible?'👁️':'👁️‍🗨️'}</button>
+                         <button onclick="toggleMask('${data.id}')" class="bg-white/20 w-5 h-5 rounded flex items-center justify-center text-[10px]">${isVisible?'👁️':'👁️‍🗨️'}</button>
                          <button onclick="openCollab('${data.id}', '${data.name}', ${data.forceLocked})" class="bg-white/20 px-1 rounded-md text-[7px] font-bold">🤝</button>
                          <button onclick="deleteOneStudent('${data.id}')" class="bg-red-500 w-4 h-4 rounded-full flex items-center justify-center text-[10px]">×</button>
                     </div>
                 </div>
-                ${!isVisible ? '<div class="w-full aspect-square monitor-mask">遮蔽中</div>' : `<img src="${data.image || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" class="w-full aspect-square object-contain bg-white rounded-2xl">`}
+                ${!isVisible ? '<div class="w-full aspect-square monitor-mask">隱藏中</div>' : `<img src="${data.image || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" class="w-full aspect-square object-contain bg-white rounded-2xl">`}
             `;
             grid.appendChild(card);
             if(collabTargetUid === data.id) document.getElementById('collab-st-preview').src = data.image;
@@ -414,11 +415,9 @@
     }
 
     window.openCollab = (uid, name, locked) => { 
-        collabTargetUid = uid; 
-        document.getElementById('collab-st-title').innerText = `協作：${name}`; 
+        collabTargetUid = uid; document.getElementById('collab-st-title').innerText = `協作：${name}`; 
         document.getElementById('collab-lock-student').checked = !!locked;
-        document.getElementById('collab-modal').classList.remove('hidden'); 
-        clearCollabCanvas(false); 
+        document.getElementById('collab-modal').classList.remove('hidden'); clearCollabCanvas(false); 
     };
     window.closeCollab = () => { collabTargetUid = null; document.getElementById('collab-modal').classList.add('hidden'); };
     window.clearStudentRemote = async () => { if(collabTargetUid) await updateDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', collabTargetUid), { clearReq: true }); };
@@ -444,13 +443,8 @@
         document.getElementById('student-view').classList.remove('hidden'); initCanvas();
         let lastIdx = -1, timerInt = null, forceLocked = false;
         
-        // 重要修正：偵測自己是否被踢掉
         onSnapshot(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), s => {
-            if(!s.exists()) {
-                alert("您已被老師移除或連線中斷。");
-                location.reload();
-                return;
-            }
+            if(!s.exists()) { alert("連線已結束。"); location.reload(); return; }
             const d = s.data(); const layer = document.getElementById('teacher-collab-layer');
             if(d.collabImage) { layer.src = d.collabImage; layer.classList.remove('hidden'); } else layer.classList.add('hidden');
             if(d.clearReq) { clearCanvas(); updateDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), { clearReq: false }); }
@@ -515,7 +509,7 @@
         const start = e => { cDraw = true; const p = getXY(e); collabCtx.beginPath(); collabCtx.moveTo(p.x, p.y); collabCtx.globalCompositeOperation = collabMode === 'eraser' ? 'destination-out' : 'source-over'; };
         const move = async e => { if(!cDraw) return; e.preventDefault(); const p = getXY(e); collabCtx.lineTo(p.x, p.y); collabCtx.stroke(); if(collabMode === 'eraser' && collabTargetUid) { await updateDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', collabTargetUid), { eraseReq: arrayUnion({x: p.x*(500/460), y: p.y*(500/460)}) }); } };
         const end = async () => { if(cDraw) { cDraw = false; collabHistory.push(collabCanvas.toDataURL()); if(collabTargetUid) await updateDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', collabTargetUid), { collabImage: collabCanvas.toDataURL() }); } };
-        collabCanvas.addEventListener('mousedown', start); collabCanvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        collabCanvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
         collabCanvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('touchmove', move, {passive:false}); canvas.addEventListener('touchend', end);
     }
 
@@ -528,10 +522,32 @@
     async function autoUp() { if(!user || !stName) return; await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid), { name: stName, image: canvas.toDataURL('image/png', 0.2), ts: Date.now() }, { merge: true }); }
     
     window.showQRCode = () => {
-        const b = document.createElement('div'); b.className = "fixed inset-0 z-[300] flex items-center justify-center bg-black/70 p-6"; b.onclick = () => b.remove();
-        b.innerHTML = `<div class="bg-white p-10 rounded-[40px] text-center shadow-2xl font-bold font-bold"><h3 class="font-black text-2xl mb-4 text-indigo-700 italic font-bold">掃描 QR 連線碼</h3><div id="qrc" class="flex justify-center mb-6"></div><p class="text-[10px] text-slate-400 italic font-bold">學生進入後須輸入 6 碼序號</p></div>`;
-        document.body.appendChild(b); new QRCode(document.getElementById('qrc'), { text: window.location.href, width: 220, height: 220 });
+        const url = window.location.href;
+        const b = document.createElement('div'); b.className = "fixed inset-0 z-[300] flex items-center justify-center bg-black/70 p-6"; b.onclick = (e) => { if(e.target === b) b.remove(); };
+        b.innerHTML = `
+            <div class="bg-white p-10 rounded-[40px] text-center shadow-2xl font-bold max-w-sm w-full">
+                <h3 class="font-black text-2xl mb-4 text-indigo-700 italic">掃描連線碼</h3>
+                <div id="qrc" class="flex justify-center mb-6"></div>
+                <div class="bg-slate-50 p-4 rounded-2xl mb-6">
+                    <p class="text-[10px] text-slate-400 mb-2 uppercase tracking-widest">連線網址</p>
+                    <div class="text-xs text-indigo-600 truncate mb-4 font-black">${url}</div>
+                    <button id="copy-link-btn" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black text-sm shadow-md active:scale-95 transition-all">📋 複製網址</button>
+                </div>
+                <button onclick="this.closest('.fixed').remove()" class="w-full py-2 text-slate-400 text-xs">點擊背景關閉</button>
+            </div>`;
+        document.body.appendChild(b);
+        new QRCode(document.getElementById('qrc'), { text: url, width: 200, height: 200 });
+        
+        document.getElementById('copy-link-btn').onclick = () => {
+            const el = document.createElement('textarea');
+            el.value = url; document.body.appendChild(el); el.select();
+            document.execCommand('copy'); document.body.removeChild(el);
+            const btn = document.getElementById('copy-link-btn');
+            btn.innerText = "✅ 已複製！"; btn.classList.replace('bg-indigo-600', 'bg-green-500');
+            setTimeout(() => { btn.innerText = "📋 複製網址"; btn.classList.replace('bg-green-500', 'bg-indigo-600'); }, 2000);
+        };
     };
+
     window.clearAllSubs = async () => { if(confirm("確定清空全班？")) { const snap = await getDocs(collection(db, 'artifacts', ID, 'public', 'data', 'submissions')); snap.forEach(d => deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', d.id))); } };
 
     const tb = document.getElementById('draggable-toolbar'); let isDragging = false, offset = { x: 0, y: 0 };
