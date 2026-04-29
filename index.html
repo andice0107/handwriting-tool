@@ -28,13 +28,12 @@
         /* 公布解答疊加層 - 模仿生字簿滿格描寫效果 */
         #answer-overlay {
             pointer-events: none; opacity: 0; transition: opacity 0.4s; 
-            color: rgba(200, 200, 200, 0.5); font-size: 450px; 
+            color: rgba(180, 180, 180, 0.5); font-size: 420px !important; 
             display: flex; align-items: center; justify-content: center;
             z-index: 15; position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; line-height: 1;
         }
         #answer-overlay.show { opacity: 1; }
 
-        /* 教師示範層 z-200 */
         #teacher-collab-layer { position: absolute; inset: 0; z-index: 200; pointer-events: none; width: 100%; height: 100%; object-fit: contain; }
         canvas { position: absolute; inset: 0; z-index: 10; touch-action: none; cursor: crosshair; width: 100%; height: 100%; background: transparent; }
 
@@ -49,6 +48,10 @@
         }
         #st-char { line-height: 1.1; width: 100%; transition: opacity 0.3s; z-index: 50; position: relative; display: none; font-weight: 900; }
         #st-waiting-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 40px; z-index: 40; color: #94a3b8; font-weight: 900; font-size: 26px; text-align: center; padding: 30px; }
+
+        #collab-modal, #auth-modal { backdrop-filter: blur(15px); }
+        .locked-tool { filter: grayscale(1); opacity: 0.3 !important; pointer-events: none; transition: all 0.3s; }
+        .tool-active { border: 4px solid #4338ca !important; transform: scale(1.1); box-shadow: 0 0 15px rgba(67, 56, 202, 0.4); }
 
         .monitor-card { background: white; border-radius: 32px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); border: 2px solid #eef2f6; overflow: hidden; display: flex; flex-direction: column; width: 100%; min-height: 380px; flex-shrink: 0; aspect-ratio: 1/1; position: relative; }
         .monitor-header { background: #4338ca; color: white; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
@@ -67,7 +70,6 @@
         .number-btn-v.inactive { background-color: white; color: #94a3b8; border: 1px solid #e2e8f0; }
         .active-quiz-badge { background: #fde68a; color: #b45309; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 900; margin-left: auto; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .tool-active { border: 4px solid #4338ca !important; transform: scale(1.1); box-shadow: 0 0 15px rgba(67, 56, 202, 0.4); }
     </style>
 </head>
 <body>
@@ -105,7 +107,7 @@
                 <input type="text" id="st-name-input" class="w-full text-center text-3xl p-5 border-4 border-indigo-50 rounded-3xl outline-none focus:border-indigo-500 font-bold" placeholder="姓名或座號">
                 <input type="text" id="st-code-input" maxlength="6" class="w-full text-center text-5xl p-5 border-4 border-amber-100 rounded-3xl outline-none focus:border-amber-500 font-bold tracking-widest" placeholder="6 碼序號">
             </div>
-            <button id="st-login-btn" onclick="window.initApp('student')" class="w-full bg-indigo-600 text-white py-6 rounded-3xl font-black text-2xl btn-push shadow-md transition-transform hover:scale-[1.02] font-bold">驗證進入</button>
+            <button onclick="window.initApp('student')" class="w-full bg-indigo-600 text-white py-6 rounded-3xl font-black text-2xl btn-push shadow-md transition-transform hover:scale-[1.02] font-bold">驗證進入</button>
         </div>
     </div>
 
@@ -155,7 +157,14 @@
             </aside>
             <section class="flex-grow p-10 overflow-y-auto bg-slate-100 font-bold">
                 <div class="flex justify-between items-center mb-8 px-6 font-bold">
-                    <h3 class="text-3xl font-black text-slate-800 underline decoration-amber-400 font-bold">實時監控牆</h3>
+                    <div class="flex items-center gap-6">
+                        <h3 class="text-3xl font-black text-slate-800 underline decoration-amber-400 font-bold">實時監控牆</h3>
+                        <!-- 找回一鍵遮蔽與解除鍵 -->
+                        <div class="flex gap-3 bg-white p-1.5 rounded-full border shadow-inner">
+                            <button onclick="window.forceAllMasks(true)" class="text-sm px-5 py-2 rounded-full font-black text-slate-500 border border-transparent hover:border-slate-200">全部遮蔽</button>
+                            <button onclick="window.forceAllMasks(false)" class="text-sm px-5 py-2 rounded-full font-black text-indigo-600 border border-transparent hover:border-indigo-200">全解除</button>
+                        </div>
+                    </div>
                     <button onclick="window.clearAllSubs()" class="text-sm font-black text-red-500 hover:underline">清空全班數據</button>
                 </div>
                 <div id="monitor-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-10 items-start font-bold"></div>
@@ -163,7 +172,7 @@
         </main>
     </div>
 
-    <!-- 5. 學生端 -->
+    <!-- 5. 學生端練習頁 -->
     <div id="student-view" class="hidden h-full flex flex-col bg-[#fffefc] font-bold">
         <header class="bg-white border-b px-10 py-5 flex justify-between items-center shrink-0 shadow-md relative z-40 font-bold font-bold">
             <div class="flex flex-col font-bold">
@@ -173,7 +182,7 @@
             <div class="flex gap-6 items-center">
                 <div id="timer-display" class="hidden bg-amber-500 text-white px-8 py-3 rounded-3xl font-black text-3xl shadow-xl animate-pulse font-bold">⏱ <span id="timer-seconds">--</span>s</div>
                 <div id="reveal-status" class="bg-indigo-50 text-indigo-400 px-6 py-3 rounded-2xl font-black text-base border border-indigo-100 flex items-center gap-3">
-                    <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75 font-bold font-bold"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 font-bold font-bold font-bold font-bold font-bold font-bold font-bold"></span></span>狀態載入中...
+                    <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75 font-bold font-bold"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 font-bold font-bold font-bold font-bold font-bold"></span></span>狀態載入中...
                 </div>
                 <button onclick="window.studentQuit()" class="bg-red-50 text-red-500 px-8 py-3 rounded-2xl font-black text-base border border-red-100 shadow-sm font-bold">🚪 退出</button>
             </div>
@@ -187,7 +196,7 @@
                 <div id="zoom-wrapper" class="tian-grid-wrapper font-bold font-bold">
                     <div class="tian-grid-container shadow-2xl font-bold">
                         <div class="tian-grid-bg absolute inset-0 font-bold font-bold font-bold"></div>
-                        <!-- 已優化：滿格淺灰色解答層 -->
+                        <!-- 解答層：強化尺寸並設為淺灰色 -->
                         <div id="answer-overlay" class="kai-text font-bold"></div>
                         <img id="teacher-collab-layer" class="hidden font-bold">
                         <canvas id="main-canvas"></canvas>
@@ -205,7 +214,8 @@
                     <button onclick="window.clearCanvas()" class="st-btn bg-slate-100 text-slate-600 w-11 h-11 rounded-xl font-black text-xl flex items-center justify-center active:scale-90 shadow-sm font-bold font-bold">🧹</button>
                 </div>
             </div>
-            <div class="zoom-controls font-bold">
+            <!-- 恢復縮放按鈕 -->
+            <div class="zoom-controls">
                 <button onclick="window.adjustZoom(0.1)" class="w-16 h-16 bg-white rounded-full shadow-2xl border border-indigo-50 flex items-center justify-center text-4xl font-black text-indigo-600 active:scale-90 font-bold">+</button>
                 <button onclick="window.adjustZoom(-0.1)" class="w-16 h-16 bg-white rounded-full shadow-xl border border-indigo-100 flex items-center justify-center text-4xl font-black text-indigo-600 active:scale-90 font-bold">-</button>
             </div>
@@ -217,7 +227,6 @@
         <div class="bg-white w-full max-w-5xl rounded-[60px] shadow-2xl flex flex-col overflow-hidden max-h-[95vh] font-bold">
             <header class="p-8 bg-indigo-600 text-white flex justify-between items-center shrink-0 font-bold">
                 <div class="flex items-center gap-8 font-bold font-bold font-bold">
-                    <!-- ID 已修正，移除多餘 class 防止 JS 抓取失敗 -->
                     <div><h3 class="text-3xl font-black italic" id="collab-st-title">師生同步協作</h3><p class="text-xs opacity-80 font-black">教師筆劃物理覆蓋</p></div>
                     <div class="bg-indigo-700/50 px-6 py-3 rounded-3xl flex items-center gap-3 border border-white/20 font-bold font-bold">
                         <input type="checkbox" id="collab-lock-student" onchange="window.syncStudentForceLock()" class="w-6 h-6 accent-indigo-400">
@@ -230,7 +239,7 @@
                 </div>
             </header>
             <main class="flex-grow flex flex-col md:flex-row p-10 gap-12 items-center justify-center bg-slate-50 overflow-y-auto">
-                <div id="collab-canvas-container" class="relative bg-white shadow-2xl rounded-3xl overflow-hidden border-8 border-indigo-200 shrink-0 font-bold font-bold" style="width: 500px; height: 500px;">
+                <div id="collab-canvas-container" class="relative bg-white shadow-2xl rounded-3xl overflow-hidden border-8 border-indigo-200 shrink-0 font-bold font-bold font-bold" style="width: 500px; height: 500px;">
                     <img id="collab-st-preview" class="absolute inset-0 z-10 w-full h-full object-contain pointer-events-none opacity-40 font-bold font-bold">
                     <canvas id="collab-canvas" class="relative z-20 w-full h-full font-bold font-bold font-bold"></canvas>
                 </div>
@@ -261,7 +270,7 @@
 
     onAuthStateChanged(auth, async u => { user = u; if(!u) { const res = await signInAnonymously(auth); user = res.user; } });
 
-    // --- 全域按鍵物理焊接 ---
+    // --- 全域物理焊接 ---
     document.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
             const adminInput = document.getElementById('admin-pw-input'), stNameInput = document.getElementById('st-name-input'), stCodeInput = document.getElementById('st-code-input');
@@ -309,7 +318,7 @@
         if(role === 'teacher') setupTeacher(); else setupStudent();
     };
 
-    // --- 協作物理啟動：徹底解決報錯 ---
+    // --- 協作物理啟動：確保 ID 抓取不再報錯 ---
     window.openCollab = function(uid, name, locked) { 
         collabTargetUid = uid; 
         const titleEl = document.getElementById('collab-st-title');
@@ -391,6 +400,7 @@
     }
 
     window.toggleMask = uid => { if(visibleUids.has(uid)) visibleUids.delete(uid); else visibleUids.add(uid); window.renderMonitorGrid(); };
+    window.forceAllMasks = shouldMask => { visibleUids.clear(); if(shouldMask) submissionsData.forEach(s => visibleUids.delete(s.id)); else submissionsData.forEach(s => visibleUids.add(s.id)); window.renderMonitorGrid(); };
     window.clearAllSubs = async () => { if(confirm("確定清空全班？")) { const snap = await getDocs(collection(db, 'artifacts', ID, 'public', 'data', 'submissions')); snap.forEach(d => deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', d.id))); } };
     window.deleteOneStudent = async uid => { if(confirm("移除此生？")) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', uid)); };
 
@@ -401,14 +411,14 @@
 
     function renderNav() { 
         const navFull = document.getElementById('quiz-list-full'), navV = document.getElementById('sidebar-nav-vertical');
-        navFull.innerHTML = quizData.map((it, idx) => `<button onclick="window.setQuiz(${idx})" class="w-full text-left p-5 rounded-3xl border-2 transition-all flex justify-between items-center ${curIdx === idx ? 'border-indigo-600 bg-indigo-50 shadow-md font-black' : 'border-white bg-white shadow-sm'}" data-idx="${idx}"><span class="kai-text text-xl font-bold font-bold font-bold font-bold font-bold font-bold font-bold">${it.target}</span>${curIdx === idx ? '<span class="active-quiz-badge">正在出題</span>' : `<span class="text-[11px] text-slate-300 font-black italic"># ${idx+1}</span>`}</button>`).join('');
-        navV.innerHTML = quizData.map((it, idx) => `<button onclick="window.setQuiz(${idx})" class="number-btn-v flex items-center justify-center ${curIdx === idx ? 'active' : 'inactive'} font-bold font-bold">${idx+1}</button>`).join('');
+        navFull.innerHTML = quizData.map((it, idx) => `<button onclick="window.setQuiz(${idx})" class="w-full text-left p-5 rounded-3xl border-2 transition-all flex justify-between items-center ${curIdx === idx ? 'border-indigo-600 bg-indigo-50 shadow-md font-black' : 'border-white bg-white shadow-sm'}" data-idx="${idx}"><span class="kai-text text-xl font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold">${it.target}</span>${curIdx === idx ? '<span class="active-quiz-badge">正在出題</span>' : `<span class="text-[11px] text-slate-300 font-black italic"># ${idx+1}</span>`}</button>`).join('');
+        navV.innerHTML = quizData.map((it, idx) => `<button onclick="window.setQuiz(${idx})" class="number-btn-v flex items-center justify-center ${curIdx === idx ? 'active' : 'inactive'} font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold">${idx+1}</button>`).join('');
     }
 
     window.setQuiz = async idx => { curIdx = idx; syncGlobal({ idx, ts: Date.now(), showAnswer: false }); };
     async function syncGlobal(p) { await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { ...p }, { merge: true }); }
 
-    // --- 畫板焊接與逐步返回邏輯 ---
+    // --- 畫板焊接與逐步撤銷 ---
     let studentCtx = null, studentHistory = [], studentMode = 'pen';
     let collabCtx = null, collabHistory = [];
 
@@ -446,7 +456,6 @@
                 const charEl = document.getElementById('st-char'); charEl.innerText = i.context.split(i.target).join('□');
                 const updateFontSize = () => { let size = 220; charEl.style.fontSize = size + 'px'; const cont = document.getElementById('st-char-container'); while ((charEl.scrollHeight > cont.clientHeight || charEl.scrollWidth > cont.clientWidth) && size > 40) { size -= 10; charEl.style.fontSize = size + 'px'; } }; setTimeout(updateFontSize, 50);
                 
-                // 公布解答疊加層物理對齊與滿格化
                 const overlay = document.getElementById('answer-overlay');
                 overlay.innerText = i.target;
                 overlay.classList.toggle('show', !!d.showAnswer);
@@ -511,7 +520,7 @@
     window.showQRCode = () => {
         const url = window.location.href, box = document.createElement('div');
         box.className = "fixed inset-0 z-[600] flex items-center justify-center bg-black/70 p-6"; box.onclick = (e) => { if(e.target === box) box.remove(); };
-        box.innerHTML = `<div class="bg-white p-12 rounded-[60px] text-center shadow-2xl font-bold max-sm:w-full font-bold font-bold font-bold"><h3 class="font-black text-3xl mb-6 text-indigo-700 italic font-bold font-bold font-bold font-bold font-bold font-bold font-bold">連線 QR 碼與網址</h3><div id="qrc-container" class="flex justify-center mb-8 font-bold"></div><div class="bg-slate-50 p-6 rounded-3xl mb-8 font-bold font-bold font-bold font-bold font-bold font-bold font-bold"><div class="text-[12px] text-slate-400 mb-2 font-black uppercase font-bold font-bold font-bold">目前的連線網址</div><div id="url-text" class="text-sm text-indigo-600 truncate mb-6 font-black font-bold font-bold font-bold font-bold font-bold">${url}</div><button id="copy-link-btn" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all font-bold">📋 複製網址連結</button></div><p class="text-sm text-slate-400 font-black font-bold font-bold font-bold font-bold font-bold font-bold">點擊背景關閉視窗</p></div>`;
+        box.innerHTML = `<div class="bg-white p-12 rounded-[60px] text-center shadow-2xl font-bold max-sm:w-full font-bold font-bold font-bold"><h3 class="font-black text-3xl mb-6 text-indigo-700 italic font-bold font-bold font-bold">連線 QR 碼與網址</h3><div id="qrc-container" class="flex justify-center mb-8 font-bold"></div><div class="bg-slate-50 p-6 rounded-3xl mb-8 font-bold font-bold font-bold font-bold font-bold font-bold"><div class="text-[12px] text-slate-400 mb-2 font-black uppercase font-bold font-bold font-bold">目前的連線網址</div><div id="url-text" class="text-sm text-indigo-600 truncate mb-6 font-black font-bold font-bold font-bold font-bold font-bold">${url}</div><button id="copy-link-btn" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all">📋 複製網址連結</button></div><p class="text-sm text-slate-400 font-black font-bold font-bold font-bold">點擊背景關閉視窗</p></div>`;
         document.body.appendChild(box); new QRCode(document.getElementById('qrc-container'), { text: url, width: 250, height: 250 });
         document.getElementById('copy-link-btn').onclick = () => { const el = document.createElement('textarea'); el.value = url; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); const btn = document.getElementById('copy-link-btn'); btn.innerText = "✅ 網址已複製！"; setTimeout(() => btn.innerText = "📋 複製網址連結", 2000); };
     };
