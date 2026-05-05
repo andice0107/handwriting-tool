@@ -57,7 +57,7 @@
         #teacher-sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
         .top-label { font-size: 14px; color: #94a3b8; font-weight: 900; text-transform: uppercase; margin-bottom: 3px; padding-left: 4px; }
         
-        /* 教師題目預覽收摺/展開 */
+        /* 教師題目預覽展開機制 */
         #teacher-preview-box { 
             background: white; border: 2px solid #e2e8f0; border-radius: 12px; 
             height: 52px; padding: 0 16px; display: flex; align-items: center; 
@@ -111,7 +111,7 @@
         </div>
     </div>
 
-    <!-- 3. 學生登入 (含慣用手) -->
+    <!-- 3. 學生登入 (自選慣用手) -->
     <div id="name-modal" class="hidden absolute inset-0 z-[300] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl p-6 font-bold">
         <div class="bg-white p-12 rounded-[60px] shadow-2xl w-full max-sm:max-w-sm text-center border-b-8 border-indigo-200">
             <h2 class="text-3xl font-black mb-8 text-indigo-700 font-bold">準備練習囉</h2>
@@ -134,7 +134,7 @@
                 <button onclick="window.toggleSidebar()" class="bg-indigo-600 text-white px-5 py-3 rounded-2xl shadow-lg hover:bg-indigo-700 font-black text-base shrink-0 font-bold">題庫設定</button>
                 <button onclick="window.openAuthModal('change')" class="bg-slate-100 text-slate-600 px-5 py-3 rounded-2xl font-black text-base hover:bg-slate-200 font-bold">🔑 修改密碼</button>
                 <div class="flex flex-col bg-amber-50 border border-amber-200 px-6 py-1 rounded-2xl shrink-0 font-bold">
-                    <span class="top-label text-amber-600 font-black font-bold">學生登入序號</span>
+                    <span class="top-label text-amber-600 font-black">學生登入序號</span>
                     <span id="display-join-code">------</span>
                 </div>
                 <div class="flex flex-col gap-1 font-bold">
@@ -228,7 +228,7 @@
                     <button onclick="window.clearCanvas()" class="st-btn bg-slate-100 text-slate-600 w-11 h-11 rounded-xl font-black text-xl flex items-center justify-center active:scale-90 shadow-sm font-bold font-bold font-bold">🧹</button>
                 </div>
             </div>
-            <div class="zoom-controls">
+            <div class="zoom-controls font-bold">
                 <button onclick="window.adjustZoom(0.1)" class="w-16 h-16 bg-white rounded-full shadow-2xl border border-indigo-50 flex items-center justify-center text-4xl font-black text-indigo-600 active:scale-90 font-bold">+</button>
                 <button onclick="window.adjustZoom(-0.1)" class="w-16 h-16 bg-white rounded-full shadow-xl border border-indigo-100 flex items-center justify-center text-4xl font-black text-indigo-600 active:scale-90 font-bold">-</button>
             </div>
@@ -277,7 +277,7 @@
 
     const firebaseConfig = { apiKey: "AIzaSyBBIi6sw-wUzp-Jxc3dXJhl5DZ3-6LMe-o", authDomain: "my-handwriting-tool.firebaseapp.com", projectId: "my-handwriting-tool", storageBucket: "my-handwriting-tool.firebasestorage.app", messagingSenderId: "649810632937", appId: "1:649810632937:web:085f7e5c8f5290d6da9078" };
     const app = initializeApp(firebaseConfig), db = getFirestore(app), auth = getAuth(app);
-    const ID = "ice-hanzi-privacy-vFinal-Locked-vUltimate-2026-FINAL-PRO-REFIX-V25-PHYSICAL-LOCK"; 
+    const ID = "ice-hanzi-privacy-vFinal-Locked-vUltimate-2026-FINAL-PRO-REFIX-V26-PHYSICAL-LOCK"; 
     let user = null, quizData = [], curIdx = -1, stName = '', collabTargetUid = null, isLocked = true, isSidebarCollapsed = true;
     let submissionsData = [], visibleUids = new Set(), currentJoinCode = "", collabMode = 'red', authType = 'teacher', zoom = 1.0, studentHand = 'right';
 
@@ -325,7 +325,7 @@
             const codeInput = document.getElementById('st-code-input').value.trim();
             const serverDoc = await getDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'));
             const serverCode = serverDoc.data()?.joinCode;
-            if(!serverCode) { alert("教師尚未同步題庫"); return; }
+            if(!serverCode) { alert("教師尚未同步內容"); return; }
             if(codeInput !== serverCode) { alert(`序號錯誤！目前正確序號為：${serverCode}`); return; }
             stName = document.getElementById('st-name-input').value.trim() || `學員-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
             document.getElementById('st-id-display').innerText = `ID: ${stName}`;
@@ -363,7 +363,6 @@
         renderNav(); 
     };
 
-    // --- 教師動作重構：強制恢復學生權限 ---
     window.toggleGlobalAction = async () => {
         const stateRef = doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current');
         const s = await getDoc(stateRef);
@@ -372,12 +371,8 @@
             const dur = parseInt(document.getElementById('timer-duration').value) || 0;
             const endTime = dur > 0 ? Date.now() + (dur * 1000) : 0;
             await setDoc(stateRef, { isStarted: true, isPaused: false, timerEndTime: endTime }, { merge: true });
-            
-            // 要求：點擊開始作答時，強制解除所有學生的手動鎖定
             const snap = await getDocs(collection(db, 'artifacts', ID, 'public', 'data', 'submissions'));
-            snap.forEach(async (docRef) => {
-                await updateDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', docRef.id), { forceLocked: false });
-            });
+            snap.forEach(async (docRef) => { await updateDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', docRef.id), { forceLocked: false }); });
         } else { await setDoc(stateRef, { isPaused: true }, { merge: true }); }
     };
 
@@ -442,9 +437,13 @@
         navV.innerHTML = quizData.map((it, idx) => `<button onclick="window.setQuiz(${idx})" class="number-btn-v flex items-center justify-center ${curIdx === idx ? 'active' : 'inactive'} font-bold">${idx+1}</button>`).join('');
     }
 
-    // --- 切題重構：自動幫所有學生清屏、解鎖、移除協作 ---
+    // --- 要求修正：變更題目時自動限制畫板功能 ---
     window.setQuiz = async idx => { 
-        curIdx = idx; syncGlobal({ idx, ts: Date.now(), showAnswer: false }); 
+        curIdx = idx; 
+        // 強制寫入暫停與未開始狀態
+        await setDoc(doc(db, 'artifacts', ID, 'public', 'data', 'gameState', 'current'), { 
+            idx, ts: Date.now(), showAnswer: false, isPaused: true, isStarted: false, timerEndTime: 0 
+        }, { merge: true }); 
         const snap = await getDocs(collection(db, 'artifacts', ID, 'public', 'data', 'submissions'));
         snap.forEach(async (docRef) => {
             await updateDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', docRef.id), {
@@ -457,10 +456,10 @@
     let studentCtx = null, studentHistory = [], studentMode = 'pen';
     let collabCtx = null, collabHistory = [];
 
-    window.clearCanvas = async () => { if(!studentCtx) return; studentCtx.clearRect(0,0,500,500); studentHistory = []; await autoUp(); };
-    window.undo = async () => { if(!studentCtx || studentHistory.length === 0) return; studentHistory.pop(); const last = studentHistory[studentHistory.length-1]; studentCtx.clearRect(0,0,500,500); if(last){ const img = new Image(); img.onload = () => studentCtx.drawImage(img, 0,0,500,500); img.src = last; } await autoUp(); };
+    window.clearCanvas = async () => { if(!studentCtx || isLocked) return; studentCtx.clearRect(0,0,500,500); studentHistory = []; await autoUp(); };
+    window.undo = async () => { if(!studentCtx || studentHistory.length === 0 || isLocked) return; studentHistory.pop(); const last = studentHistory[studentHistory.length-1]; studentCtx.clearRect(0,0,500,500); if(last){ const img = new Image(); img.onload = () => studentCtx.drawImage(img, 0,0,500,500); img.src = last; } await autoUp(); };
     window.setStudentMode = (m) => { if(isLocked) return; studentMode = m; document.getElementById('st-eraser-btn').classList.toggle('tool-active', m === 'eraser'); document.getElementById('st-pen-btn').classList.toggle('tool-active', m === 'pen'); };
-    window.studentQuit = async () => { if(confirm("確定退出？")) { if(user) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid)); location.reload(); } };
+    window.studentQuit = async () => { if(confirm("確定退出？紀錄將刪除。")) { if(user) await deleteDoc(doc(db, 'artifacts', ID, 'public', 'data', 'submissions', user.uid)); location.reload(); } };
     window.adjustZoom = d => { zoom = Math.max(0.5, Math.min(2, zoom + d)); document.getElementById('zoom-wrapper').style.transform = `scale(${zoom})`; };
 
     function setupStudent() {
@@ -504,14 +503,12 @@
         });
     }
 
-    // --- 要求：暫停時同時鎖定 返回↩ 與 全清🧹 ---
     const checkTotalLock = (fl) => {
         const gsStr = document.getElementById('app').dataset.gs; if(!gsStr) return;
         const d = JSON.parse(gsStr);
         let timeUp = d.timerEndTime > 0 && Date.now() >= d.timerEndTime;
         let locked = d.isPaused || d.showAnswer || fl || !d.isStarted || timeUp;
         isLocked = locked;
-        // 物理鎖死四個按鈕
         document.querySelectorAll('.st-btn').forEach(b => b.classList.toggle('locked-tool', locked));
         const statusEl = document.getElementById('reveal-status');
         if(statusEl) statusEl.innerText = !d.isStarted ? "⏸ 等待開啟" : (d.showAnswer ? "✨ 對照解答中" : (fl ? "🔒 已鎖定" : (timeUp ? "🔒 限時結束" : (d.isPaused ? "⏸ 暫停中" : "作答中..."))));
@@ -548,7 +545,7 @@
     window.showQRCode = () => {
         const url = window.location.href, box = document.createElement('div');
         box.className = "fixed inset-0 z-[600] flex items-center justify-center bg-black/70 p-6"; box.onclick = (e) => { if(e.target === box) box.remove(); };
-        box.innerHTML = `<div class="bg-white p-12 rounded-[60px] text-center shadow-2xl font-bold max-sm:w-full font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold"><h3 class="font-black text-3xl mb-6 text-indigo-700 italic font-bold font-bold font-bold font-bold">連線 QR 碼與網址</h3><div id="qrc-container" class="flex justify-center mb-8 font-bold font-bold font-bold"></div><div class="bg-slate-50 p-6 rounded-3xl mb-8 font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold font-bold"><div class="text-[12px] text-slate-400 mb-2 font-black uppercase">目前的連線網址</div><div id="url-text" class="text-sm text-indigo-600 truncate mb-6 font-black">${url}</div><button id="copy-link-btn" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all font-bold font-bold">📋 複製網址連結</button></div><p class="text-sm text-slate-400 font-black font-bold font-bold font-bold">點擊背景關閉視窗</p></div>`;
+        box.innerHTML = `<div class="bg-white p-12 rounded-[60px] text-center shadow-2xl font-bold max-sm:w-full font-bold"><h3 class="font-black text-3xl mb-6 text-indigo-700 italic font-bold">連線 QR 碼與網址</h3><div id="qrc-container" class="flex justify-center mb-8 font-bold"></div><div class="bg-slate-50 p-6 rounded-3xl mb-8 font-bold"><div class="text-[12px] text-slate-400 mb-2 font-black uppercase">目前的連線網址</div><div id="url-text" class="text-sm text-indigo-600 truncate mb-6 font-black">${url}</div><button id="copy-link-btn" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all font-bold">📋 複製網址連結</button></div><p class="text-sm text-slate-400 font-black font-bold">點擊背景關閉視窗</p></div>`;
         document.body.appendChild(box); new QRCode(document.getElementById('qrc-container'), { text: url, width: 250, height: 250 });
         document.getElementById('copy-link-btn').onclick = () => { const el = document.createElement('textarea'); el.value = url; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); const btn = document.getElementById('copy-link-btn'); btn.innerText = "✅ 網址已複製！"; setTimeout(() => btn.innerText = "📋 複製網址連結", 2000); };
     };
